@@ -18,8 +18,7 @@ from ok_corral.bandits import RandomBandit
 
 def bandit_vs_env(p_bandit, p_env, p_nb_trial = 20):
     """
-
-    :param p_bandit:
+    @param p_bandit:
     :type p_env: StochasticBanditEnvironment
     :param p_env:
     :param p_nb_trial:
