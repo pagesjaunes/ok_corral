@@ -20,6 +20,12 @@ class Agent:
     def reset(self):
         pass
 
+    def to_json(self):
+        pass
+
+    def from_json(self, p_json):
+        pass
+
 
 ### Bandits Non Contextuels
 
@@ -29,7 +35,6 @@ class Bandit(Agent):
     def __init__(self):
 
         Agent.__init__(self)
-
 
 
 class RandomBandit(Bandit):
@@ -111,6 +116,9 @@ class UCB(Bandit):
     def observe(self, p_action, p_reward):
 
         super(UCB, self).observe(p_action, p_reward)
+
+        # Nombre de tours de jeux
+        self.t += 1
         # Nombre de reward
         self.counters[p_action][self.INDEX_NOMBRE_TIRAGES] += 1
         # Récompense cumulée
