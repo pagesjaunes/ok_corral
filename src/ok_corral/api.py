@@ -41,6 +41,7 @@ class Bandit(Resource):
 
 
     doc_parser = api.parser()
+    doc_parser.add_argument('p_user_key', location='args', required=True)
     doc_parser.add_argument('name', location='args', required=False)
     doc_parser.add_argument('type_algorithme', location='args', required=True, choices = BANDIT_AVAILABLES)
     doc_parser.add_argument('nombre_actions', type=int, location='args', required=True)
@@ -50,31 +51,32 @@ class Bandit(Resource):
         """
             Création d'une instance de bandit
         """
+        p_user_key = request.args['p_user_key']
         name = request.args['name']
         type_algorithme = request.args['type_algorithme']
         nombre_actions = int(request.args['nombre_actions'])
 
         print(name,type_algorithme,nombre_actions)
-        key = agent_manager.add_bandit(name,type_algorithme,nombre_actions)
+        key = agent_manager.add_bandit(p_user_key,name,type_algorithme,nombre_actions)
 
-        return jsonify(key = key)
+        return jsonify(instance_key = key)
 
 
     doc_parser = api.parser()
-    doc_parser.add_argument('key', location='args', required=True)
+    doc_parser.add_argument('instance_key', location='args', required=True)
 
     @api.expect(doc_parser)
     def get(self):
         """
         Retourne la décision prise par une instance
         """
-        action = agent_manager.get_decision(request.args['key'])
+        action = agent_manager.get_decision(request.args['instance_key'])
 
         return jsonify(action = action)
 
 
     doc_parser = api.parser()
-    doc_parser.add_argument('key', location='args', required=True)
+    doc_parser.add_argument('instance_key', location='args', required=True)
     doc_parser.add_argument('action', type = int, location='args', required=True)
     doc_parser.add_argument('reward', type = float, location='args', required=True)
 
@@ -84,7 +86,7 @@ class Bandit(Resource):
         Met à jour l'algorithme
         """
 
-        action = agent_manager.observe(request.args['key'], int(request.args['action']), float(request.args['reward']))
+        action = agent_manager.observe(request.args['instance_key'], int(request.args['action']), float(request.args['reward']))
 
         return jsonify(message = "ok")
 

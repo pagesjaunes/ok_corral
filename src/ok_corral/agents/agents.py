@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import math
+import json
 
 
 class Agent:
@@ -78,6 +79,36 @@ class ThompsonSampling(Bandit):
 
     def reset(self):
         self.prior = np.ones((self.nombre_bras, 2), dtype=np.float64)
+
+    def to_json(self):
+
+        # Nombre bras
+        # Bras i : [succes, echecs]
+
+        json_dictionnary = {}
+        json_dictionnary["nombre_bras"] = self.nombre_bras
+        json_dictionnary["class"] = type(self).__name__
+        json_dictionnary["prior"] = {}
+
+        for k in range(self.nombre_bras):
+            json_dictionnary["prior"][k] = {"success" : self.prior[k][self.INDEX_SUCCESS], "failure" : self.prior[k][self.INDEX_FAILURE]}
+
+        return json.dumps(json_dictionnary)
+
+
+    @staticmethod
+    def from_json(p_json):
+
+        json_dictionnary = json.loads(p_json)
+
+        instance = ThompsonSampling(json_dictionnary["nombre_bras"])
+
+        for k in range(instance.nombre_bras):
+            instance.prior[k][instance.INDEX_SUCCESS] = int(json_dictionnary["prior"][str(k)]["success"])
+            instance.prior[k][instance.INDEX_FAILURE] = int(json_dictionnary["prior"][str(k)]["failure"])
+
+        return instance
+
 
 
 class UCB(Bandit):

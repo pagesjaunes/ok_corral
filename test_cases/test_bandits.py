@@ -21,7 +21,7 @@ from ok_corral.bandits import RandomBandit
 
 class TestBanditAlgorithms(unittest.TestCase):
 
-    def bandit_vs_env(self, p_bandit, p_env, p_nb_trial=20):
+    def bandit_vs_env(self, p_bandit, p_env, p_nb_trial=20, p_horizon = 100000):
         """
         @param p_bandit:
         :type p_env: StochasticBanditEnvironment
@@ -37,7 +37,7 @@ class TestBanditAlgorithms(unittest.TestCase):
         for i in range(p_nb_trial):
             p_bandit.reset()
 
-            reward, regret = p_env.run(p_bandit)
+            reward, regret = p_env.run(p_bandit,p_horizon)
 
             mean_reward += reward[len(reward) - 1][1]
             mean_regret += regret[len(regret) - 1][1]
@@ -53,7 +53,7 @@ class TestBanditAlgorithms(unittest.TestCase):
         dec_per_sec, reward, regret = self.bandit_vs_env(bandit_UCB, env, 1)
 
         self.assertGreater(dec_per_sec, 4000)
-        self.assertLess(regret, 2000)
+        self.assertLess(regret, 2500)
 
         env = StochasticBanditEnvironment(2,0.1)
 
@@ -66,10 +66,12 @@ class TestBanditAlgorithms(unittest.TestCase):
 
     def test_thompson_sampling(self):
 
-        env = StochasticBanditEnvironment(20,0.2)
+        nombre_bras = 20
 
-        bandit_TS = ThompsonSampling(20)
-        dec_per_sec, reward, regret =  self.bandit_vs_env(bandit_TS, env, 1)
+        env = StochasticBanditEnvironment(nombre_bras,0.2)
+
+        bandit_ts = ThompsonSampling(nombre_bras)
+        dec_per_sec, reward, regret =  self.bandit_vs_env(bandit_ts, env, 1)
 
         self.assertGreater(dec_per_sec, 4000)
         self.assertLess(regret, 500)
@@ -82,6 +84,29 @@ class TestBanditAlgorithms(unittest.TestCase):
         self.assertGreater(dec_per_sec, 7000)
         self.assertLess(regret, 250)
 
+    def test_thompson_sampling_json(self):
+        nombre_bras = 20
+
+        env = StochasticBanditEnvironment(nombre_bras,0.2)
+
+        bandit_ts = ThompsonSampling(nombre_bras)
+        dec_per_sec, reward, regret =  self.bandit_vs_env(bandit_ts, env, 1,100)
+
+        self.assertGreater(dec_per_sec, 4000)
+        self.assertLess(regret, 500)
+
+        jsonified_ts = bandit_ts.to_json()
+
+        from_json = ThompsonSampling.from_json(jsonified_ts)
+
+        self.assertEqual(bandit_ts.nombre_bras, from_json.nombre_bras)
+
+        for k in range(bandit_ts.nombre_bras):
+
+            self.assertEqual(bandit_ts.prior[k][0], from_json.prior[k][0])
+            self.assertEqual(bandit_ts.prior[k][1], from_json.prior[k][1])
+
+        self.assertEqual(nombre_bras,k+1)
 
 if __name__ == '__main__':
     unittest.main()
