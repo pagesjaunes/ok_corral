@@ -158,3 +158,40 @@ class UCB(Bandit):
     def reset(self):
         self.t = 1
         self.counters = np.ones((self.nombre_bras, 2), dtype=np.float64)
+
+    def to_json(self):
+
+        # Nombre bras
+        # Compteurs t
+        # Bras i : [INDEX_NOMBRE_TIRAGES, INDEX_RECOMPENSE_CUMULEE]
+
+        json_dictionnary = {}
+        json_dictionnary["nombre_bras"] = self.nombre_bras
+
+        json_dictionnary["class"] = type(self).__name__
+
+        json_dictionnary["nb_iterations"] = self.t
+
+
+        json_dictionnary["counters"] = {}
+
+        for k in range(self.nombre_bras):
+            json_dictionnary["counters"][k] = {"nb_tirages" : self.counters[k][self.INDEX_NOMBRE_TIRAGES], "recompense_cumulee" : self.counters[k][self.INDEX_RECOMPENSE_CUMULEE]}
+
+        return json.dumps(json_dictionnary)
+
+
+    @staticmethod
+    def from_json(p_json):
+
+        json_dictionnary = json.loads(p_json)
+
+        instance = UCB(json_dictionnary["nombre_bras"])
+
+        instance.t = json_dictionnary["nb_iterations"]
+
+        for k in range(instance.nombre_bras):
+            instance.counters[k][instance.INDEX_NOMBRE_TIRAGES] = int(json_dictionnary["counters"][str(k)]["nb_tirages"])
+            instance.counters[k][instance.INDEX_RECOMPENSE_CUMULEE] = int(json_dictionnary["counters"][str(k)]["recompense_cumulee"])
+
+        return instance
