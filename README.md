@@ -1,4 +1,4 @@
-## Ok Corral
+# Ok Corral
 
-# Version Python supportée:
+## Version Python supportée:
 Python 3.6
