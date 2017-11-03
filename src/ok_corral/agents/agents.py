@@ -1,10 +1,14 @@
-import numpy as np
-import random
-import math
+# coding=utf-8
 import json
+import math
+import random
 
+import numpy as np
+import abc
 
 class Agent:
+    __metaclass__ = abc.ABCMeta
+
     """
     Contrat de l'agent
     """
@@ -12,20 +16,26 @@ class Agent:
     def __init__(self):
         pass
 
-    def select_action(self):
+    @abc.abstractmethod
+    def select_action(self, *args):
         pass
 
+    @abc.abstractmethod
     def observe(self, *args):
         pass
 
+    @abc.abstractmethod
     def reset(self):
         pass
 
+    @abc.abstractmethod
     def to_json(self):
-        pass
+        return None
 
+    @staticmethod
+    @abc.abstractmethod
     def from_json(self, p_json):
-        pass
+        return None
 
 
 ### Bandits Non Contextuels
@@ -36,6 +46,7 @@ class Bandit(Agent):
     def __init__(self):
 
         Agent.__init__(self)
+
 
 
 class RandomBandit(Bandit):
@@ -49,6 +60,17 @@ class RandomBandit(Bandit):
 
         return random.randint(0,self.nombre_bras - 1)
 
+    def to_json(self):
+
+        json_dictionnary = {}
+        json_dictionnary["nombre_bras"] = self.nombre_bras
+
+        return json.dumps(json_dictionnary)
+
+    @staticmethod
+    def from_json(p_json):
+
+        return RandomBandit(json.loads(p_json)["nombre_bras"])
 
 class ThompsonSampling(Bandit):
 
@@ -195,3 +217,101 @@ class UCB(Bandit):
             instance.counters[k][instance.INDEX_RECOMPENSE_CUMULEE] = int(json_dictionnary["counters"][str(k)]["recompense_cumulee"])
 
         return instance
+
+
+### Bandits Contextuels
+
+class ContextualBandit(Agent):
+
+    def __init__(self):
+
+        Agent.__init__(self)
+
+
+class RandomContextualBandit(Bandit):
+
+    def __init__(self, p_nombre_bras, p_dimension):
+
+        self.nombre_bras = p_nombre_bras
+        self.dimension = p_dimension
+
+        Bandit.__init__(self)
+
+    def select_action(self, p_context):
+
+        return random.randint(0,self.nombre_bras - 1)
+
+    def to_json(self):
+
+        return json.dumps({"nombre_bras": self.nombre_bras})
+
+
+    @staticmethod
+    def from_json(p_json):
+
+        return RandomContextualBandit(json.loads(p_json)["nombre_bras"])
+
+
+class LinUCB(Bandit):
+
+    def __init__(self, p_nombre_bras, p_dimension):
+
+        self.nombre_bras = p_nombre_bras
+        self.dimension = p_dimension
+        self.reset()
+        Bandit.__init__(self)
+
+        self._tmp_value = np.zeros(self.nombre_bras)
+
+    def select_action(self, p_context):
+
+        for k in range(self.nombre_bras):
+
+            value = np.matmul(np.transpose(self._theta[k]),p_context)
+            confidence_interval = np.sqrt(np.matmul(np.matmul(np.transpose(p_context),self._A_inv[k]),p_context))
+
+            self._tmp_value[k] = value + confidence_interval
+
+        return np.argmax(self._tmp_value)
+
+    def observe(self, p_context, p_action, p_reward):
+
+        self.t += 1
+        self._A[p_action] = self._A[p_action] + np.matmul(p_context,np.transpose(p_context))
+        self._b[p_action] = self._b[p_action] + p_context*p_reward
+
+        if self.t % 1000 == 0:
+            self._invert()
+
+    def reset(self):
+
+        self.t = 0
+
+        self._A = []
+        self._b = []
+
+        for k in range(self.nombre_bras):
+
+            self._A.append(np.identity(self.dimension))
+            self._b.append(np.zeros((self.dimension,1)))
+
+        self._invert()
+
+    def _invert(self):
+
+        self._A_inv = []
+        self._theta = []
+        for k in range(self.nombre_bras):
+
+            self._A_inv.append(np.linalg.inv(self._A[k]))
+
+            self._theta.append(np.matmul(self._A_inv[k],self._b[k]))
+
+    def to_json(self):
+
+        return json.dumps({"nombre_bras": self.nombre_bras})
+
+    @staticmethod
+    def from_json(p_json):
+
+        return RandomContextualBandit(json.loads(p_json)["nombre_bras"])

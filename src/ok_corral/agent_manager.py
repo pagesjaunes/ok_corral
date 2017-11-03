@@ -1,5 +1,6 @@
-from ok_corral.bandits import *
 import os
+
+from ok_corral.bandits import *
 
 #Type d'algorithmes
 

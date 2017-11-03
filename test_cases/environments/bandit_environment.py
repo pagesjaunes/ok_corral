@@ -1,3 +1,4 @@
+# coding=utf-8
 import numpy as np
 import random
 from ok_corral.agents.agents import Bandit
@@ -5,25 +6,20 @@ from scipy.stats import bernoulli
 
 HORIZON_PAR_DEFAUT = 100000
 
-class Environment():
-    def __init__(self):
-        pass
+NOMBRE_BRAS_PAR_DEFAUT = 100
+NOMBRE_LOG_PAR_DEFAUT = 100
+
+
+class BanditEnvironment():
+    def __init__(self, p_nombre_bras=NOMBRE_BRAS_PAR_DEFAUT):
+        self.nombre_bras = p_nombre_bras
+        self.cumulativeReward = 0
 
     def get_actions_description(self):
-
-        assert False, "get_actions_description doit être implémentée par la classe fille"
-
-    def get_observation_description(self):
-
-        return None
+        return self.nombre_bras
 
     def _initialization_environment(self):
-
         assert False, "initialization_environment doit être implémentée par la classe fille"
-
-    def _play(self, p_agent):
-
-        assert False, "_play doit être implémentée par la classe fille"
 
     def run(self, p_agent, p_horizon=HORIZON_PAR_DEFAUT):
         """
@@ -41,9 +37,9 @@ class Environment():
 
         self._initialization_environment()
 
-        for t in range(HORIZON_PAR_DEFAUT):
+        for t in range(p_horizon):
 
-            if t % (HORIZON_PAR_DEFAUT / NOMBRE_LOG_PAR_DEFAUT) == 0:
+            if t % (p_horizon / NOMBRE_LOG_PAR_DEFAUT) == 0:
                 cumulative_rewards.append([t, cumulative_reward])
                 cumulative_regrets.append([t, cumulative_regret])
 
@@ -55,22 +51,6 @@ class Environment():
         cumulative_regrets.append([t + 1, cumulative_regret])
 
         return cumulative_rewards, cumulative_regrets
-
-
-NOMBRE_BRAS_PAR_DEFAUT = 100
-NOMBRE_LOG_PAR_DEFAUT = 100
-
-
-class BanditEnvironment(Environment):
-    def __init__(self, p_nombre_bras=NOMBRE_BRAS_PAR_DEFAUT):
-        self.nombre_bras = p_nombre_bras
-        self.cumulativeReward = 0
-
-    def get_actions_description(self):
-        return self.nombre_bras
-
-    def _initialization_environment(self):
-        super(BanditEnvironment, self)._initialization_environment()
 
     def _perform_action(self, p_action):
         assert False, "perform_action doit être implémentée par la classe fille"

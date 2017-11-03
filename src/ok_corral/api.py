@@ -2,8 +2,6 @@ import traceback, logging
 
 from flask import Flask, jsonify, Blueprint, request
 from flask_restplus import Resource, Api, swagger
-from webargs import fields, validate
-from webargs.flaskparser import use_kwargs, parser
 from requests import codes as http_codes
 
 

@@ -13,10 +13,14 @@ except:
 if dir_path not in sys.path:
     sys.path.append(dir_path)
 
-from environments.environments import StochasticBanditEnvironment
+from .environments.bandit_environment import StochasticBanditEnvironment
+from .environments.contextual_bandit_environment import Adult
+
 from ok_corral.bandits import ThompsonSampling
 from ok_corral.bandits import UCB
 from ok_corral.bandits import RandomBandit
+from ok_corral.bandits import LinUCB
+from ok_corral.bandits import RandomContextualBandit
 
 
 class TestBanditAlgorithms(unittest.TestCase):
@@ -24,7 +28,7 @@ class TestBanditAlgorithms(unittest.TestCase):
     def bandit_vs_env(self, p_bandit, p_env, p_horizon = 100000, p_nb_trial=20):
         """
         @param p_bandit:
-        :type p_env: StochasticBanditEnvironment
+        :type p_env: Adult
         :param p_env:
         :param p_nb_trial:
         :return:
@@ -54,6 +58,8 @@ class TestBanditAlgorithms(unittest.TestCase):
 
         self.assertGreater(dec_per_sec, 4000)
         self.assertLess(regret, 2500)
+
+        print("Stochastic20:UCB",dec_per_sec, reward, regret)
 
         env = StochasticBanditEnvironment(2,0.1)
 
@@ -98,6 +104,7 @@ class TestBanditAlgorithms(unittest.TestCase):
 
         self.assertGreater(dec_per_sec, 4000)
         self.assertLess(regret, 500)
+        print("Stochastic20:TS",dec_per_sec, reward, regret)
 
         env = StochasticBanditEnvironment(2,0.1)
 
@@ -127,6 +134,28 @@ class TestBanditAlgorithms(unittest.TestCase):
             self.assertEqual(bandit_ts.prior[k][1], from_json.prior[k][1])
 
         self.assertEqual(nombre_bras,k+1)
+
+
+    def test_linUCB(self):
+
+        env = Adult()
+
+        bandit_linUCB = LinUCB(env.get_actions_description(),env.get_environment_description())
+        dec_per_sec, reward, regret = self.bandit_vs_env(bandit_linUCB, env, p_horizon = 50000, p_nb_trial=1)
+
+        print("Adult:LinUCB",dec_per_sec, reward, regret)
+
+        self.assertGreater(dec_per_sec, 2000)
+        self.assertLess(regret, 75000)
+
+    def test_RandomContextual(self):
+
+        env = Adult()
+
+        bandit_rand = RandomContextualBandit(env.get_actions_description(),env.get_environment_description())
+        dec_per_sec, reward, regret = self.bandit_vs_env(bandit_rand, env,p_horizon = 50000, p_nb_trial=1)
+
+        print("Adult:Random",dec_per_sec, reward, regret)
 
 if __name__ == '__main__':
     unittest.main()
