@@ -6,6 +6,9 @@ import random
 import numpy as np
 import abc
 
+from ok_corral.feature_wrapper.feature_wrapper import FeatureWrapper
+from ok_corral.helper import *
+
 class Agent:
     __metaclass__ = abc.ABCMeta
 
@@ -29,7 +32,7 @@ class Agent:
         pass
 
     @abc.abstractmethod
-    def to_json(self):
+    def to_json(self, p_to_dic):
         return None
 
     @staticmethod
@@ -60,17 +63,16 @@ class RandomBandit(Bandit):
 
         return random.randint(0,self.nombre_bras - 1)
 
-    def to_json(self):
+    def to_json(self, p_dump = True):
 
-        json_dictionnary = {}
-        json_dictionnary["nombre_bras"] = self.nombre_bras
-
-        return json.dumps(json_dictionnary)
+        return serialize_json({"nombre_bras": self.nombre_bras}, p_dump)
 
     @staticmethod
     def from_json(p_json):
 
-        return RandomBandit(json.loads(p_json)["nombre_bras"])
+        dic = deserialize_json(p_json)
+
+        return RandomBandit(dic["nombre_bras"])
 
 class ThompsonSampling(Bandit):
 
@@ -102,7 +104,7 @@ class ThompsonSampling(Bandit):
     def reset(self):
         self.prior = np.ones((self.nombre_bras, 2), dtype=np.float64)
 
-    def to_json(self):
+    def to_json(self, p_dump = True):
 
         # Nombre bras
         # Bras i : [succes, echecs]
@@ -115,19 +117,19 @@ class ThompsonSampling(Bandit):
         for k in range(self.nombre_bras):
             json_dictionnary["prior"][k] = {"success" : self.prior[k][self.INDEX_SUCCESS], "failure" : self.prior[k][self.INDEX_FAILURE]}
 
-        return json.dumps(json_dictionnary)
+        return serialize_json(json_dictionnary, p_dump)
 
 
     @staticmethod
     def from_json(p_json):
 
-        json_dictionnary = json.loads(p_json)
+        json_dictionary = deserialize_json(p_json)
 
-        instance = ThompsonSampling(json_dictionnary["nombre_bras"])
+        instance = ThompsonSampling(json_dictionary["nombre_bras"])
 
         for k in range(instance.nombre_bras):
-            instance.prior[k][instance.INDEX_SUCCESS] = int(json_dictionnary["prior"][str(k)]["success"])
-            instance.prior[k][instance.INDEX_FAILURE] = int(json_dictionnary["prior"][str(k)]["failure"])
+            instance.prior[k][instance.INDEX_SUCCESS] = int(json_dictionary["prior"][str(k)]["success"])
+            instance.prior[k][instance.INDEX_FAILURE] = int(json_dictionary["prior"][str(k)]["failure"])
 
         return instance
 
@@ -181,7 +183,7 @@ class UCB(Bandit):
         self.t = 1
         self.counters = np.ones((self.nombre_bras, 2), dtype=np.float64)
 
-    def to_json(self):
+    def to_json(self, p_dump = True):
 
         # Nombre bras
         # Compteurs t
@@ -194,27 +196,27 @@ class UCB(Bandit):
 
         json_dictionnary["nb_iterations"] = self.t
 
-
         json_dictionnary["counters"] = {}
 
         for k in range(self.nombre_bras):
             json_dictionnary["counters"][k] = {"nb_tirages" : self.counters[k][self.INDEX_NOMBRE_TIRAGES], "recompense_cumulee" : self.counters[k][self.INDEX_RECOMPENSE_CUMULEE]}
 
-        return json.dumps(json_dictionnary)
+
+        return json_dictionnary(json_dictionnary, p_dump)
 
 
     @staticmethod
     def from_json(p_json):
 
-        json_dictionnary = json.loads(p_json)
+        json_dictionary = deserialize_json(p_json)
 
-        instance = UCB(json_dictionnary["nombre_bras"])
+        instance = UCB(json_dictionary["nombre_bras"])
 
-        instance.t = json_dictionnary["nb_iterations"]
+        instance.t = json_dictionary["nb_iterations"]
 
         for k in range(instance.nombre_bras):
-            instance.counters[k][instance.INDEX_NOMBRE_TIRAGES] = int(json_dictionnary["counters"][str(k)]["nb_tirages"])
-            instance.counters[k][instance.INDEX_RECOMPENSE_CUMULEE] = int(json_dictionnary["counters"][str(k)]["recompense_cumulee"])
+            instance.counters[k][instance.INDEX_NOMBRE_TIRAGES] = int(json_dictionary["counters"][str(k)]["nb_tirages"])
+            instance.counters[k][instance.INDEX_RECOMPENSE_CUMULEE] = int(json_dictionary["counters"][str(k)]["recompense_cumulee"])
 
         return instance
 
@@ -241,29 +243,41 @@ class RandomContextualBandit(Bandit):
 
         return random.randint(0,self.nombre_bras - 1)
 
-    def to_json(self):
+    def to_json(self, p_dump = True):
 
-        return json.dumps({"nombre_bras": self.nombre_bras})
+        return serialize_json({"nombre_bras": self.nombre_bras}, p_dump)
 
 
     @staticmethod
     def from_json(p_json):
 
-        return RandomContextualBandit(json.loads(p_json)["nombre_bras"])
+        return RandomContextualBandit(deserialize_json(p_json)["nombre_bras"])
 
 
 class LinUCB(Bandit):
 
-    def __init__(self, p_nombre_bras, p_dimension):
+    def __init__(self, p_nombre_bras, p_dimension = None, p_wrapper = None):
+
+        assert p_dimension is not None or p_wrapper is not None
 
         self.nombre_bras = p_nombre_bras
-        self.dimension = p_dimension
+
+        if p_wrapper is not None:
+
+            self.wrapper = p_wrapper
+            self.dimension = p_wrapper.get_array_dimension()
+
+        else:
+            self.dimension = p_dimension
+
         self.reset()
         Bandit.__init__(self)
 
         self._tmp_value = np.zeros(self.nombre_bras)
 
     def select_action(self, p_context):
+
+        p_context = convert_json_to_array_of_read(p_context, self.wrapper)
 
         for k in range(self.nombre_bras):
 
@@ -275,6 +289,7 @@ class LinUCB(Bandit):
         return np.argmax(self._tmp_value)
 
     def observe(self, p_context, p_action, p_reward):
+        p_context = convert_json_to_array_of_read(p_context, self.wrapper)
 
         self.t += 1
         self._A[p_action] = self._A[p_action] + np.matmul(p_context,np.transpose(p_context))
@@ -307,11 +322,48 @@ class LinUCB(Bandit):
 
             self._theta.append(np.matmul(self._A_inv[k],self._b[k]))
 
-    def to_json(self):
+    def to_json(self, p_dump = True):
 
-        return json.dumps({"nombre_bras": self.nombre_bras})
+        dictionary = {"nombre_bras": self.nombre_bras, "dimension" : self.dimension}
+
+        for k in range(self.nombre_bras):
+
+            dictionary[k] = {"_A": self._A[k].tostring(), "_b": self._b[k].tostring(), "_A_inv": self._A_inv[k].tostring(),"_theta": self._theta[k].tostring()}
+
+        if self.wrapper is not None:
+
+            dictionary["wrapper"] = self.wrapper.to_json(False)
+
+        return serialize_json(dictionary, p_dump)
 
     @staticmethod
     def from_json(p_json):
 
-        return RandomContextualBandit(json.loads(p_json)["nombre_bras"])
+        dictionary = deserialize_json(p_json)
+        wrapper = None
+
+        if "wrapper" in dictionary:
+
+            wrapper = FeatureWrapper.from_json(p_json = dictionary["wrapper"])
+
+        linucb = LinUCB(json.loads(p_json)["nombre_bras"], p_dimension= dictionary["dimension"], p_wrapper = wrapper)
+
+        for k in range(linucb.nombre_bras):
+
+            dic_k = dictionary[str(k)]
+            linucb._A[k] = np.fromstring(dic_k["_A"])
+            linucb._A[k] = np.fromstring(dic_k["_b"])
+            linucb._A[k] = np.fromstring(dic_k["_A_inv"])
+            linucb._A[k] = np.fromstring(dic_k["_theta"])
+
+
+        return linucb
+
+# Helpers Bandit Contextuel
+
+def convert_json_to_array_of_read(p_json, p_wrapper):
+
+    if type(p_json) == list:
+        p_json = p_wrapper.get_all_features_as_real_valued_array(p_json)
+
+    return p_json

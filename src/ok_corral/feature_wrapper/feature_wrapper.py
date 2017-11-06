@@ -121,11 +121,14 @@ class FeatureWrapper():
 
         arrays = []
 
-        for i_json in loaded_json:
+        print(loaded_json)
+        for i, i_json in enumerate(loaded_json):
 
-            arrays.append(self.get_one_feature_from_loaded_json(i_json))
+            arrays.append(self.features_list[i].get_array(i_json["value"]))
 
-        return list(itertools.chain.from_iterable(arrays))
+        concat = list(itertools.chain.from_iterable(arrays))
+
+        return np.reshape(np.array(concat),(len(concat),1))
 
     def get_features_as_dictionnary_of_placeholder(self, p_context_json):
 
@@ -133,7 +136,7 @@ class FeatureWrapper():
 
     def get_array_dimension(self):
 
-        return np.sum([i_feature.get_array_dimension for i_feature in self.features_list])
+        return np.sum([i_feature.get_array_dimension() for i_feature in self.features_list])
 
     def to_json(self, p_dump = True):
 

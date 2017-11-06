@@ -18,17 +18,29 @@ app.register_blueprint(blueprint)
 
 agent_manager = AgentManager()
 
-@api.route('/heartbeat')
-class Heart(Resource):
-    @staticmethod
-    def get():
+@api.route('/chifoumi')
+class Chifoumi(Resource):
+
+    doc_parser = api.parser()
+    doc_parser.add_argument('play', location='args', required=True, choices = ["pierre","feuille","ciseaux"])
+    @api.expect(doc_parser)
+    def get(self):
         """
-            Heartbeat
-            Est-ce que l'api est en vie ?
+        Joue avec un bandit
         """
+
+        if request.args['play'] == "pierre":
+            coup = "feuille"
+
+        elif request.args['play'] == "feuille":
+            coup = "ciseaux"
+
+        else:
+            coup = "pierre"
+
         response = {
             'status_code': 200,
-            'message': 'Heartbeat'
+            'message': coup
         }
 
         return _success(response)
@@ -57,7 +69,7 @@ class Bandit(Resource):
         print(name,type_algorithme,nombre_actions)
         key = agent_manager.add_bandit(p_user_key,name,type_algorithme,nombre_actions)
 
-        return jsonify(instance_key = key)
+        return jsonify(instance_key = str(key))
 
 
     doc_parser = api.parser()
@@ -70,7 +82,7 @@ class Bandit(Resource):
         """
         action = agent_manager.get_decision(request.args['instance_key'])
 
-        return jsonify(action = action)
+        return jsonify(action = str(action))
 
 
     doc_parser = api.parser()

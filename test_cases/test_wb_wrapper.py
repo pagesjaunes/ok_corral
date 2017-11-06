@@ -102,6 +102,9 @@ class TestWrapper(unittest.TestCase):
 
         self.assertEqual(json,deserialized_wrapper.to_json())
 
+        self.assertTrue(deserialized_wrapper.features_list[0].dimension == 2)
+        self.assertTrue(deserialized_wrapper.features_list[1].dimension == 5)
+
 
 
 if __name__ == '__main__':
