@@ -1,4 +1,4 @@
-import traceback, logging
+import traceback, logging, json
 
 from flask import Flask, jsonify, Blueprint, request
 from flask_restplus import Resource, Api, swagger
@@ -9,12 +9,14 @@ from ok_corral.agent_manager import AgentManager, PrivilegeException
 from ok_corral.bandits import BANDIT_AVAILABLES
 
 app = Flask(__name__)
+app.config.SWAGGER_UI_JSONEDITOR = True
 
-blueprint = Blueprint('api', __name__)
+blueprint = Blueprint('api', __name__ )
 
 api = Api(blueprint, title='API', description="Api de bandits")
 
 app.register_blueprint(blueprint)
+
 
 agent_manager = AgentManager()
 
@@ -51,11 +53,11 @@ class Bandit(Resource):
 
 
     doc_parser = api.parser()
-    doc_parser.add_argument('p_user_key', location='args', required=True)
+    doc_parser.add_argument('p_user_key', location='args', help='La clé utilisateur', required=True)
     doc_parser.add_argument('name', location='args', required=False)
-    doc_parser.add_argument('type_algorithme', location='args', required=True, choices = BANDIT_AVAILABLES)
+    doc_parser.add_argument('type_algorithme', location='args', help="L'algorithme de bandits à utiliser", required=True, choices = BANDIT_AVAILABLES)
     doc_parser.add_argument('nombre_actions', type=int, location='args', required=True)
-    doc_parser.add_argument('description_contexte', location='args', required=False)
+    doc_parser.add_argument('description_contexte', location='args', help="La description du contexte (obligatoire pour les bandits contextuels)", required=False)
 
     @api.expect(doc_parser)
     def post(self):
@@ -80,7 +82,7 @@ class Bandit(Resource):
 
     doc_parser = api.parser()
     doc_parser.add_argument('instance_key', location='args', required=True)
-    doc_parser.add_argument('contexte', location='args', required=False)
+    doc_parser.add_argument('contexte', location='args', help="Le contexte (obligatoire pour les bandits contextuels)", required=False)
 
     @api.expect(doc_parser)
     def get(self):
@@ -102,7 +104,7 @@ class Bandit(Resource):
     doc_parser.add_argument('instance_key', location='args', required=True)
     doc_parser.add_argument('action', type = int, location='args', required=True)
     doc_parser.add_argument('reward', type = float, location='args', required=True)
-    doc_parser.add_argument('contexte', location='args', required=False)
+    doc_parser.add_argument('contexte', location='args', help="Le contexte (obligatoire pour les bandits contextuels)", required=False)
 
     @api.expect(doc_parser)
     def put(self):
@@ -150,6 +152,8 @@ def make_reponse(p_object=None, status_code: int = 200):
     json_response.content_type = 'application/json;charset=utf-8'
     json_response.headers['Cache-Control'] = 'max-age=3600'
     return json_response
+
+
 
 
 if __name__ == '__main__':

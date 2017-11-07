@@ -43,7 +43,7 @@ class CategoricallyNumberedFeature(Feature):
     def __init__(self, p_cardinality, p_name=None):
 
         self.cardinality = p_cardinality
-        self.type = FEATURE_TYPE_REAL
+        self.type = FEATURE_TYPE_CAT_NUMBER
         self.name = p_name
 
     def get_array(self, p_json):
@@ -112,7 +112,6 @@ class RealValuedFeature(Feature):
     def from_json(p_json):
 
         dictionary = deserialize_json(p_json)
-
         return RealValuedFeature(int(dictionary["dimension"]),
                                  p_name=dictionary["name"] if "name" in dictionary else None)
 
@@ -163,10 +162,9 @@ class FeatureWrapper():
 
         arrays = []
 
-        print(loaded_json)
         for i, i_json in enumerate(loaded_json):
 
-            arrays.append(self.features_list[i].get_array(i_json["value"]))
+            arrays.append(self.features_list[i].get_array(i_json["value"] if type(i_json) is dict else i_json))
 
         concat = list(itertools.chain.from_iterable(arrays))
 

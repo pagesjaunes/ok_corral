@@ -108,15 +108,18 @@ class TestWrapper(unittest.TestCase):
 
     def test_wrapper(self):
 
-        name = "test_jeaoefahoaeohaeoh"
+        name = "my name 1"
         feature_1 = RealValuedFeature(p_dimension=2, p_name = name)
 
-        name2 = "test2_piefaonefnaonpiaef"
-        feature_2 = RealValuedFeature(p_dimension=5, p_name = name2)
+        feature_2 = RealValuedFeature(p_dimension=5)
+
+        name2 = "my name 2"
+        feature_3 = CategoricallyNumberedFeature(p_cardinality=5, p_name = name2)
 
         wrapper = FeatureWrapper()
         wrapper.add_feature(feature_1)
         wrapper.add_feature(feature_2)
+        wrapper.add_feature(feature_3)
 
         json = wrapper.to_json()
 
