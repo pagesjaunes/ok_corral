@@ -139,7 +139,6 @@ class AgentManager:
     def reset(self):
         assert False, "Not implemented"
 
-
     def check_instance_key(self, p_instance_key):
 
         if p_instance_key not in self.agents:

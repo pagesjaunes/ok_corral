@@ -1,0 +1,112 @@
+{
+	"_type": "export",
+	"__export_format": 3,
+	"__export_date": "2017-11-07T10:08:18.041Z",
+	"__export_source": "insomnia.desktop.app:v5.10.1",
+	"resources": [
+		{
+			"_id": "wrk_67594856f7fa469a991a24fac9a64ffb",
+			"parentId": null,
+			"modified": 1510043830548,
+			"created": 1510043830548,
+			"name": "Tests API ok_corral",
+			"description": "",
+			"_type": "workspace"
+		},
+		{
+			"_id": "env_4dc5d3e4757b4873b28aba5efd51b030",
+			"parentId": "wrk_67594856f7fa469a991a24fac9a64ffb",
+			"modified": 1510043830553,
+			"created": 1510043830553,
+			"name": "Base Environment",
+			"data": {},
+			"color": null,
+			"isPrivate": false,
+			"_type": "environment"
+		},
+		{
+			"_id": "jar_9c768ba594d74589898d99d600e677eb",
+			"parentId": "wrk_67594856f7fa469a991a24fac9a64ffb",
+			"modified": 1510048073001,
+			"created": 1510043830550,
+			"name": "Default Jar",
+			"cookies": [],
+			"_type": "cookie_jar"
+		},
+		{
+			"_id": "req_2fdcd1cb334c4c5bbb14c454032d84c4",
+			"parentId": "wrk_67594856f7fa469a991a24fac9a64ffb",
+			"modified": 1510047090430,
+			"created": 1510043996671,
+			"url": "http://127.0.0.1:5000/bandit/?",
+			"name": "Création Instance Bandit",
+			"description": "Teste la création d'une instance de bandit non contextuelle",
+			"method": "POST",
+			"body": {
+				"mimeType": "application/json",
+				"text": ""
+			},
+			"parameters": [
+				{
+					"name": "p_user_key",
+					"value": "skeleton_key_42",
+					"id": "pair_1a925da579364fd98bad0740b18d0421"
+				},
+				{
+					"name": "name",
+					"value": "Mon instance de test",
+					"id": "pair_9c6dff4b24f44178a11f6073af5f9d77"
+				},
+				{
+					"name": "type_algorithme",
+					"value": "ts",
+					"id": "pair_c1bc17289bbe41a3a449c639b1699226"
+				},
+				{
+					"name": "nombre_actions",
+					"value": "5",
+					"id": "pair_0e32cdb69b754ff082c7a4d91c6ad1a9"
+				}
+			],
+			"headers": [
+				{
+					"name": "Content-Type",
+					"value": "application/json",
+					"id": "pair_897e3da5e8aa45c88566b502719c084c"
+				}
+			],
+			"authentication": {},
+			"metaSortKey": -1510043996672,
+			"settingStoreCookies": true,
+			"settingSendCookies": true,
+			"settingDisableRenderRequestBody": false,
+			"settingEncodeUrl": true,
+			"_type": "request"
+		},
+		{
+			"_id": "req_2fac82fd6fc645d88191c4d59cb7df07",
+			"parentId": "wrk_67594856f7fa469a991a24fac9a64ffb",
+			"modified": 1510048394447,
+			"created": 1510048041705,
+			"url": "http://127.0.0.1:5000/bandit/?",
+			"name": "Prise de décision",
+			"description": "",
+			"method": "GET",
+			"body": {},
+			"parameters": [
+				{
+					"name": "instance_key",
+					"value": "048e2f6d1339fd6dae12da02e2e2b37c34356f95780d1b237b668626d5df8d7d5d62859c86165837945d0ccca4aa2c2af4c1b0b62f91304a3345b575609328881063ab78f298427896ba1767384fd8414a03ae943709cc9fc476c0cf96f3003645eb19d0f912637e441362b6a847734d25e5d5d0241768cebee5bf1b4f52c57abf37f16f49ccfc59deeec2f4f44f3e81ed1839ca2a865b651274b7f3b6d2b2f0c76ecf3c95356e891b6d33d56cc8be4c5140496f672e3fdc337d63d885eb9d065a4866974eacc646e38b050f32141485dfe97877c113f366acf658837fb907f68e6701180129a9c4898aac906e2ec99f521618752a7249c31a00fb743c160638"
+				}
+			],
+			"headers": [],
+			"authentication": {},
+			"metaSortKey": -1510043996622,
+			"settingStoreCookies": true,
+			"settingSendCookies": true,
+			"settingDisableRenderRequestBody": false,
+			"settingEncodeUrl": true,
+			"_type": "request"
+		}
+	]
+}

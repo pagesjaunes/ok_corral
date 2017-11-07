@@ -5,7 +5,7 @@ from flask_restplus import Resource, Api, swagger
 from requests import codes as http_codes
 
 
-from ok_corral.agent_manager import AgentManager
+from ok_corral.agent_manager import AgentManager, PrivilegeException
 from ok_corral.bandits import BANDIT_AVAILABLES
 
 app = Flask(__name__)
@@ -55,50 +55,67 @@ class Bandit(Resource):
     doc_parser.add_argument('name', location='args', required=False)
     doc_parser.add_argument('type_algorithme', location='args', required=True, choices = BANDIT_AVAILABLES)
     doc_parser.add_argument('nombre_actions', type=int, location='args', required=True)
+    doc_parser.add_argument('description_contexte', location='args', required=False)
 
     @api.expect(doc_parser)
     def post(self):
         """
             Création d'une instance de bandit
         """
-        p_user_key = request.args['p_user_key']
-        name = request.args['name']
-        type_algorithme = request.args['type_algorithme']
-        nombre_actions = int(request.args['nombre_actions'])
 
-        print(name,type_algorithme,nombre_actions)
-        key = agent_manager.add_bandit(p_user_key,name,type_algorithme,nombre_actions)
+        try:
+            p_user_key = request.args['p_user_key']
+            name = request.args['name']
+            type_algorithme = request.args['type_algorithme']
+            nombre_actions = int(request.args['nombre_actions'])
 
-        return jsonify(instance_key = str(key))
+            description_contexte = request.args['description_contexte'] if 'description_contexte' in request.args else None
 
+            key = agent_manager.add_bandit(p_user_key,name,type_algorithme,nombre_actions, p_context_description = description_contexte)
+
+            return jsonify(instance_key = str(key))
+
+        except PrivilegeException as e:
+            return jsonify(erreur = str(e))
 
     doc_parser = api.parser()
     doc_parser.add_argument('instance_key', location='args', required=True)
+    doc_parser.add_argument('contexte', location='args', required=False)
 
     @api.expect(doc_parser)
     def get(self):
         """
         Retourne la décision prise par une instance
         """
-        action = agent_manager.get_decision(request.args['instance_key'])
+        context = request.args['contexte'] if 'contexte' in request.args else None
 
-        return jsonify(action = str(action))
+        try:
+            action = agent_manager.get_decision(request.args['instance_key'], p_context=context)
+
+            return jsonify(action = str(action))
+
+        except PrivilegeException as e:
+            return jsonify(erreur = str(e))
 
 
     doc_parser = api.parser()
     doc_parser.add_argument('instance_key', location='args', required=True)
     doc_parser.add_argument('action', type = int, location='args', required=True)
     doc_parser.add_argument('reward', type = float, location='args', required=True)
+    doc_parser.add_argument('contexte', location='args', required=False)
 
     @api.expect(doc_parser)
     def put(self):
         """
         Met à jour l'algorithme
         """
+        contexte = request.args['contexte'] if 'contexte' in request.args else None
+        try:
+            action = agent_manager.observe(request.args['instance_key'], int(request.args['action']), float(request.args['reward']), p_context=contexte)
+            return jsonify(message = "ok")
 
-        action = agent_manager.observe(request.args['instance_key'], int(request.args['action']), float(request.args['reward']))
-
-        return jsonify(message = "ok")
+        except PrivilegeException as e:
+            return jsonify(erreur = str(e))
 
 
 def _success(response):
