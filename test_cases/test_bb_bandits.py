@@ -113,6 +113,8 @@ class TestBanditAlgorithms(unittest.TestCase):
 
         self.assertGreater(dec_per_sec, 7000)
         self.assertLess(regret, 250)
+        print("Stochastic2:TS",dec_per_sec, reward, regret)
+
 
     def test_thompson_sampling_json(self):
         nombre_bras = 20

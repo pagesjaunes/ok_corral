@@ -132,7 +132,6 @@ class AgentManager:
             self.agents[p_instance_key]["instance"].observe(p_action, p_reward)
 
         else:
-            print("plop")
 
             print(p_instance_key)
             self.agents[p_instance_key]["instance"].observe(p_context, p_action, p_reward)

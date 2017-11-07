@@ -32,7 +32,7 @@ class Agent:
         pass
 
     @abc.abstractmethod
-    def to_json(self, p_to_dic):
+    def to_json(self, p_dump):
         return None
 
     @staticmethod
@@ -202,7 +202,7 @@ class UCB(Bandit):
             json_dictionnary["counters"][k] = {"nb_tirages" : self.counters[k][self.INDEX_NOMBRE_TIRAGES], "recompense_cumulee" : self.counters[k][self.INDEX_RECOMPENSE_CUMULEE]}
 
 
-        return json_dictionnary(json_dictionnary, p_dump)
+        return serialize_json(json_dictionnary, p_dump)
 
 
     @staticmethod
@@ -262,9 +262,10 @@ class LinUCB(Bandit):
 
         self.nombre_bras = p_nombre_bras
 
+        self.wrapper = p_wrapper
+
         if p_wrapper is not None:
 
-            self.wrapper = p_wrapper
             self.dimension = p_wrapper.get_array_dimension()
 
         else:

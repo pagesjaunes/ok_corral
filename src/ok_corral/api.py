@@ -26,7 +26,7 @@ class Chifoumi(Resource):
     @api.expect(doc_parser)
     def get(self):
         """
-        Joue avec un bandit
+        Joues avec un bandit
         """
 
         if request.args['play'] == "pierre":
