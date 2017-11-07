@@ -27,7 +27,7 @@ class Feature():
         pass
 
     @abc.abstractmethod
-    def get_json(self, p_dump = True):
+    def to_json(self, p_dump = True):
 
         pass
 
@@ -38,9 +38,46 @@ class Feature():
         pass
 
 
+class CategoricallyNumberedFeature(Feature):
+
+    def __init__(self, p_cardinality, p_name=None):
+
+        self.cardinality = p_cardinality
+        self.type = FEATURE_TYPE_REAL
+        self.name = p_name
+
+    def get_array(self, p_json):
+
+        value = deserialize_json(p_json)
+
+        assert self.cardinality > value, self.name + " (got: "+ str(value)+ " want < "+str(self.cardinality)+")"
+
+        return np.array([(1 if i == value else 0) for i in range(self.cardinality)])
+
+    def get_array_dimension(self):
+
+        return self.cardinality
+
+    def to_json(self, p_dump = True):
+
+        dictionary = {"type" : self.type, "cardinality" : self.cardinality}
+
+        if self.name is not None:
+            dictionary["name"] = self.name
+
+        return serialize_json(dictionary, p_dump)
+
+    @staticmethod
+    def from_json(p_json):
+
+        dictionary = deserialize_json(p_json)
+
+        return CategoricallyNumberedFeature(int(dictionary["cardinality"]), p_name = dictionary["name"] if "name" in dictionary else None)
+
+
 class RealValuedFeature(Feature):
 
-    def __init__(self, p_dimension, p_name = None):
+    def __init__(self, p_dimension, p_name=None):
 
         self.dimension = p_dimension
         self.type = FEATURE_TYPE_REAL
@@ -53,7 +90,8 @@ class RealValuedFeature(Feature):
         if not type(value) == list:
             value = [value]
 
-        assert len(value) == self.dimension, self.name + " (got: "+str(len(value))+ " want: "+str(self.dimension)+")"
+        assert len(value) == self.dimension, self.name + " (got: " + str(len(value)) + " want: " + str(
+            self.dimension) + ")"
 
         return list(map(lambda x: float(x), value))
 
@@ -61,9 +99,9 @@ class RealValuedFeature(Feature):
 
         return self.dimension
 
-    def to_json(self, p_dump = True):
+    def to_json(self, p_dump=True):
 
-        dictionary = {"type" : self.type, "dimension" : self.dimension}
+        dictionary = {"type": self.type, "dimension": self.dimension}
 
         if self.name is not None:
             dictionary["name"] = self.name
@@ -75,7 +113,9 @@ class RealValuedFeature(Feature):
 
         dictionary = deserialize_json(p_json)
 
-        return RealValuedFeature(int(dictionary["dimension"]), p_name = dictionary["name"] if "name" in dictionary else None)
+        return RealValuedFeature(int(dictionary["dimension"]),
+                                 p_name=dictionary["name"] if "name" in dictionary else None)
+
 
 
 # Description
@@ -108,9 +148,11 @@ class FeatureWrapper():
 
             self.add_feature(RealValuedFeature.from_json(p_loaded_json))
 
+        elif p_loaded_json["type"] == FEATURE_TYPE_CAT_NUMBER:
+            self.add_feature(CategoricallyNumberedFeature.from_json(p_loaded_json))
+
         else:
             assert False
-
 
 
     def get_all_features_as_real_valued_array(self, p_context_json):

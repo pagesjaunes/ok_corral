@@ -14,34 +14,35 @@ if dir_path not in sys.path:
     sys.path.append(dir_path)
 
 from ok_corral.bandits import LinUCB
-from ok_corral.feature_wrapper.feature_wrapper import FeatureWrapper, RealValuedFeature
+from ok_corral.feature_wrapper.feature_wrapper import FeatureWrapper, RealValuedFeature, CategoricallyNumberedFeature
 
 
 class TestFeature(unittest.TestCase):
 
-    def test_feature_serialization(self):
+    def _serialization(self, p_feature):
 
-        feature = RealValuedFeature(p_dimension=5)
-
-        json = feature.to_json()
-
-        feature_from_json = RealValuedFeature.from_json(json).to_json()
-
+        json = p_feature.to_json()
+        feature_from_json = p_feature.from_json(json).to_json()
         self.assertEqual(json,feature_from_json)
 
+    def test_feature_serialization(self):
+
+        self._serialization(RealValuedFeature(p_dimension=5))
+        self._serialization(CategoricallyNumberedFeature(p_cardinality=5))
+
+    def _serialization_with_name(self, p_feature, p_name):
+        json = p_feature.to_json()
+        self.assertTrue('"name": ' + '"' + p_name + '"' in json)
+        feature_from_json = p_feature.from_json(json).to_json()
+        self.assertEqual(json, feature_from_json)
 
     def test_feature_serialization_with_name(self):
 
         name = "test_jeaoefahoaeohaeoh"
-        feature = RealValuedFeature(p_dimension=5, p_name = name)
+        self._serialization_with_name(RealValuedFeature(p_dimension=5, p_name = name),name)
+        self._serialization_with_name(CategoricallyNumberedFeature(p_cardinality=5, p_name = name),name)
 
-        json = feature.to_json()
 
-        self.assertTrue('"name": '+'"'+name+'"' in json)
-
-        feature_from_json = RealValuedFeature.from_json(json).to_json()
-
-        self.assertEqual(json, feature_from_json)
 
     def test_conversion_to_array_list_real(self):
 
@@ -76,6 +77,27 @@ class TestFeature(unittest.TestCase):
         value = "2"
 
         want = [2.]
+
+        for i, i_v in enumerate(feature.get_array(value)):
+
+            self.assertEqual(i_v, want[i])
+
+    def test_conversion_to_array_from_number_categorical(self):
+
+        name = "test_jeaoefahoaeohaeoh"
+        feature = CategoricallyNumberedFeature(p_cardinality=5, p_name = name)
+
+        value = "2"
+
+        want = [0, 0, 1, 0, 0]
+
+        for i, i_v in enumerate(feature.get_array(value)):
+
+            self.assertEqual(i_v, want[i])
+
+        value = "3"
+
+        want = [0, 0,0 ,1 ,0]
 
         for i, i_v in enumerate(feature.get_array(value)):
 
