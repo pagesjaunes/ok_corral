@@ -238,7 +238,7 @@ class ContextualBandit(Agent):
         Agent.__init__(self)
 
 
-class RandomContextualBandit(Bandit):
+class RandomContextualBandit(ContextualBandit):
     def __init__(self, p_nombre_bras, p_dimension):
         self.nombre_bras = p_nombre_bras
         self.dimension = p_dimension
@@ -256,7 +256,7 @@ class RandomContextualBandit(Bandit):
         return RandomContextualBandit(deserialize_json(p_json)[self.NOMBRE_BRAS])
 
 
-class LinUCB(Bandit):
+class LinUCB(ContextualBandit):
 
     A_CODE = "_A"
     B_CODE = "_b"
@@ -331,11 +331,11 @@ class LinUCB(Bandit):
 
     def to_json(self, p_dump=True):
 
-        dictionary = {self.NOMBRE_BRAS: self.nombre_bras, self.NOMBRE_BRAS: self.dimension}
+        dictionary = {self.NOMBRE_BRAS: self.nombre_bras, self.DIMENSION: self.dimension}
 
         for k in range(self.nombre_bras):
-            dictionary[k] = {self.A_CODE: self._A[k].tostring(), self.B_CODE: self._b[k].tostring(),
-                             self.A_INV_CODE: self._A_inv[k].tostring(), self.THETA_CODE: self._theta[k].tostring()}
+            dictionary[k] = {self.A_CODE: self._A[k].tolist(), self.B_CODE: self._b[k].tolist(),
+                             self.A_INV_CODE: self._A_inv[k].tolist(), self.THETA_CODE: self._theta[k].tolist()}
 
         if self.wrapper is not None:
             dictionary[self.WRAPPER] = self.wrapper.to_json(False)
@@ -351,14 +351,14 @@ class LinUCB(Bandit):
         if LinUCB.WRAPPER in dictionary:
             wrapper = FeatureWrapper.from_json(p_json=dictionary[LinUCB.WRAPPER])
 
-        linucb = LinUCB(json.loads(p_json)[LinUCB.DIMENSION], p_dimension=dictionary[LinUCB.DIMENSION], p_wrapper=wrapper)
+        linucb = LinUCB(json.loads(p_json)[LinUCB.NOMBRE_BRAS], p_dimension=dictionary[LinUCB.DIMENSION], p_wrapper=wrapper)
 
         for k in range(linucb.nombre_bras):
             dic_k = dictionary[str(k)]
-            linucb._A[k] = np.fromstring(dic_k[LinUCB.A_CODE])
-            linucb._A[k] = np.fromstring(dic_k[LinUCB.B_CODE])
-            linucb._A[k] = np.fromstring(dic_k[LinUCB.A_INV_CODE])
-            linucb._A[k] = np.fromstring(dic_k[LinUCB.THETA_CODE])
+            linucb._A[k] = np.array(dic_k[LinUCB.A_CODE])
+            linucb._b[k] = np.array(dic_k[LinUCB.B_CODE])
+            linucb._A_inv[k] = np.array(dic_k[LinUCB.A_INV_CODE])
+            linucb._theta[k] = np.array(dic_k[LinUCB.THETA_CODE])
 
         return linucb
 

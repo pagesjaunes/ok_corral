@@ -44,7 +44,7 @@ class TestAgentManager(unittest.TestCase):
 
         manager.observe(key,action,1)
 
-        self.assertEqual(manager.agents[key]["instance"].prior[action][0], 2)
+        self.assertEqual(manager.instances[key]["instance"].prior[action][0], 2)
 
 
     def test_end_to_end_bandit_contextuel(self):

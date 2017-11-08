@@ -13,8 +13,10 @@ except:
 if dir_path not in sys.path:
     sys.path.append(dir_path)
 
-from .environments.bandit_environment import StochasticBanditEnvironment
-from .environments.contextual_bandit_environment import Adult
+
+print(dir_path)
+from environments.bandit_environment import StochasticBanditEnvironment
+from environments.contextual_bandit_environment import Adult
 
 from ok_corral.bandits import ThompsonSampling
 from ok_corral.bandits import UCB

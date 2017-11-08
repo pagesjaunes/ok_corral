@@ -94,7 +94,7 @@ class Adult(ContextualBanditEnvironment):
 
         data = []
 
-        with open('test_cases/environments/data/Adult.txt', 'r') as csvfile:
+        with open('environments/data/Adult.txt', 'r') as csvfile:
             spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
             for row in spamreader:
                 data.append(row)
