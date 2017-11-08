@@ -1,4 +1,10 @@
 # Tag pour ignorer certains fichiers
 *to_ignore*
 *ipynb_*
-*.pyc*
+*.ipynb
+*.pyc
+*.db
+*__pycache__*
+.idea/
+build/
+test_cases/environments/data*
