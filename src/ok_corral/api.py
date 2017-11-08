@@ -4,41 +4,48 @@ from flask import Flask, jsonify, Blueprint, request
 from flask_restplus import Resource, Api, swagger
 from requests import codes as http_codes
 
-
 from ok_corral.agent_manager import AgentManager, PrivilegeException
 from ok_corral.bandits import BANDIT_AVAILABLES
 
 app = Flask(__name__)
 app.config.SWAGGER_UI_JSONEDITOR = True
 
-blueprint = Blueprint('api', __name__ )
+blueprint = Blueprint('api', __name__)
 
 api = Api(blueprint, title='API', description="Api de bandits")
 
 app.register_blueprint(blueprint)
 
-
 agent_manager = AgentManager()
+
 
 @api.route('/chifoumi')
 class Chifoumi(Resource):
 
+    PLAY = "play"
+
+    PIERRE = "pierre"
+    FEUILLE = "feuille"
+    CISEAUX = "ciseaux"
+
+
     doc_parser = api.parser()
-    doc_parser.add_argument('play', location='args', required=True, choices = ["pierre","feuille","ciseaux"])
+    doc_parser.add_argument(PLAY, location='args', required=True, choices=[PIERRE, FEUILLE, CISEAUX])
+
     @api.expect(doc_parser)
     def get(self):
         """
         Joues avec un bandit
         """
 
-        if request.args['play'] == "pierre":
-            coup = "feuille"
+        if request.args[self.PLAY] == self.PIERRE:
+            coup = self.FEUILLE
 
-        elif request.args['play'] == "feuille":
-            coup = "ciseaux"
+        elif request.args[self.PLAY] == self.FEUILLE:
+            coup = self.CISEAUX
 
         else:
-            coup = "pierre"
+            coup = self.PIERRE
 
         response = {
             'status_code': 200,
@@ -51,13 +58,29 @@ class Chifoumi(Resource):
 @api.route('/bandit/')
 class Bandit(Resource):
 
+    USER_KEY = "user_key"
+    NAME = "name"
+    TYPE_ALGORITHME = "type_algorithme"
+    NB_ACTIONS = "nombre_actions"
+    DESC_CONTEXTE = 'description_contexte'
+    INST_KEY = "instance_key"
+    CONTEXTE = "contexte"
+    ACTION = "action"
+    REWARD = "reward"
+
+
+    HELP_USER_KEY = 'La clé utilisateur'
+    HELP_CONTEXTE = "Le contexte (obligatoire pour les bandits contextuels)"
 
     doc_parser = api.parser()
-    doc_parser.add_argument('p_user_key', location='args', help='La clé utilisateur', required=True)
-    doc_parser.add_argument('name', location='args', required=False)
-    doc_parser.add_argument('type_algorithme', location='args', help="L'algorithme de bandits à utiliser", required=True, choices = BANDIT_AVAILABLES)
-    doc_parser.add_argument('nombre_actions', type=int, location='args', required=True)
-    doc_parser.add_argument('description_contexte', location='args', help="La description du contexte (obligatoire pour les bandits contextuels)", required=False)
+    doc_parser.add_argument(USER_KEY, location='args', help=HELP_USER_KEY, required=True)
+    doc_parser.add_argument(NAME, location='args', required=False)
+    doc_parser.add_argument(TYPE_ALGORITHME, location='args', help="L'algorithme de bandits à utiliser",
+                            required=True, choices=BANDIT_AVAILABLES)
+    doc_parser.add_argument(NB_ACTIONS, type=int, location='args', required=True)
+    doc_parser.add_argument(DESC_CONTEXTE, location='args',
+                            help="La description du contexte (obligatoire pour les bandits contextuels)",
+                            required=False)
 
     @api.expect(doc_parser)
     def post(self):
@@ -66,58 +89,62 @@ class Bandit(Resource):
         """
 
         try:
-            p_user_key = request.args['p_user_key']
-            name = request.args['name']
-            type_algorithme = request.args['type_algorithme']
-            nombre_actions = int(request.args['nombre_actions'])
+            p_user_key = request.args[self.USER_KEY]
+            name = request.args[self.NAME]
+            type_algorithme = request.args[self.TYPE_ALGORITHME]
+            nombre_actions = int(request.args[self.NB_ACTIONS])
 
-            description_contexte = request.args['description_contexte'] if 'description_contexte' in request.args else None
+            description_contexte = request.args[
+                self.DESC_CONTEXTE] if self.DESC_CONTEXTE in request.args else None
 
-            key = agent_manager.add_bandit(p_user_key,name,type_algorithme,nombre_actions, p_context_description = description_contexte)
+            key = agent_manager.add_bandit(p_user_key, name, type_algorithme, nombre_actions,
+                                           p_context_description=description_contexte)
 
-            return jsonify(instance_key = str(key))
+            return jsonify(instance_key=str(key))
 
         except PrivilegeException as e:
-            return jsonify(erreur = str(e))
+            return jsonify(erreur=str(e))
 
     doc_parser = api.parser()
-    doc_parser.add_argument('instance_key', location='args', required=True)
-    doc_parser.add_argument('contexte', location='args', help="Le contexte (obligatoire pour les bandits contextuels)", required=False)
+    doc_parser.add_argument(INST_KEY, location='args', required=True)
+    doc_parser.add_argument(CONTEXTE, location='args', help=HELP_CONTEXTE,
+                            required=False)
 
     @api.expect(doc_parser)
     def get(self):
         """
         Retourne la décision prise par une instance
         """
-        context = request.args['contexte'] if 'contexte' in request.args else None
+        context = request.args[self.CONTEXTE] if self.CONTEXTE in request.args else None
 
         try:
-            action = agent_manager.get_decision(request.args['instance_key'], p_context=context)
+            action = agent_manager.get_decision(request.args[self.INST_KEY], p_context=context)
 
-            return jsonify(action = str(action))
+            return jsonify(action=str(action))
 
         except PrivilegeException as e:
-            return jsonify(erreur = str(e))
-
+            return jsonify(erreur=str(e))
 
     doc_parser = api.parser()
-    doc_parser.add_argument('instance_key', location='args', required=True)
-    doc_parser.add_argument('action', type = int, location='args', required=True)
-    doc_parser.add_argument('reward', type = float, location='args', required=True)
-    doc_parser.add_argument('contexte', location='args', help="Le contexte (obligatoire pour les bandits contextuels)", required=False)
+    doc_parser.add_argument(INST_KEY, location='args', required=True)
+    doc_parser.add_argument(ACTION, type=int, location='args', required=True)
+    doc_parser.add_argument(REWARD, type=float, location='args', required=True)
+    doc_parser.add_argument(CONTEXTE, location='args', help=HELP_CONTEXTE,
+                            required=False)
 
     @api.expect(doc_parser)
     def put(self):
         """
         Met à jour l'algorithme
         """
-        contexte = request.args['contexte'] if 'contexte' in request.args else None
+        contexte = request.args[self.CONTEXTE] if self.CONTEXTE in request.args else None
         try:
-            action = agent_manager.observe(request.args['instance_key'], int(request.args['action']), float(request.args['reward']), p_context=contexte)
-            return jsonify(message = "ok")
+            action = agent_manager.observe(request.args[self.INST_KEY], int(request.args[self.ACTION]),
+                                           float(request.args[self.REWARD]), p_context=contexte)
+            return jsonify(message="ok")
 
         except PrivilegeException as e:
-            return jsonify(erreur = str(e))
+            return jsonify(erreur=str(e))
 
 
 def _success(response):
@@ -154,7 +181,5 @@ def make_reponse(p_object=None, status_code: int = 200):
     return json_response
 
 
-
-
 if __name__ == '__main__':
-    app.run(debug=True)                #  Start a development server
+    app.run(debug=True)  # Start a development server

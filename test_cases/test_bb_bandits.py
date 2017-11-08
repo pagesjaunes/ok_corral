@@ -28,9 +28,10 @@ class TestBanditAlgorithms(unittest.TestCase):
     def bandit_vs_env(self, p_bandit, p_env, p_horizon = 100000, p_nb_trial=20):
         """
         @param p_bandit:
+        :param p_horizon: Le nombre d'iterations pour une expérience
         :type p_env: Adult
         :param p_env:
-        :param p_nb_trial:
+        :param p_nb_trial: Le nombre de fois où l'expérience est répétée
         :return:
         """
 
@@ -115,7 +116,6 @@ class TestBanditAlgorithms(unittest.TestCase):
         self.assertLess(regret, 250)
         print("Stochastic2:TS",dec_per_sec, reward, regret)
 
-
     def test_thompson_sampling_json(self):
         nombre_bras = 20
 
@@ -136,7 +136,6 @@ class TestBanditAlgorithms(unittest.TestCase):
             self.assertEqual(bandit_ts.prior[k][1], from_json.prior[k][1])
 
         self.assertEqual(nombre_bras,k+1)
-
 
     def test_linUCB(self):
 

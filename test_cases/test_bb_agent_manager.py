@@ -36,7 +36,7 @@ class TestAgentManager(unittest.TestCase):
     def test_end_to_end_bandit(self):
 
         manager = AgentManager()
-        manager.privilege_manager.user_keys.add("ma clé")
+        manager.privilege_manager._user_keys.add("ma clé")
 
         key = manager.add_bandit("ma clé", "mon instance", "ts", 5)
 
@@ -50,7 +50,7 @@ class TestAgentManager(unittest.TestCase):
     def test_end_to_end_bandit_contextuel(self):
 
         manager = AgentManager()
-        manager.privilege_manager.user_keys.add("ma clé")
+        manager.privilege_manager._user_keys.add("ma clé")
 
         name = "test_jeaoefahoaeohaeoh"
         feature_1 = RealValuedFeature(p_dimension=2, p_name=name)
@@ -62,8 +62,6 @@ class TestAgentManager(unittest.TestCase):
         wrapper.add_feature(feature_2)
 
         json_contexte = wrapper.to_json()
-
-        print(json_contexte)
 
         key = manager.add_bandit("ma clé", "mon instance", "linucb", 5, json_contexte)
 

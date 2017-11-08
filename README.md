@@ -68,7 +68,7 @@ Femme| 2
 
 *A noter*: Pas optimal pour les cardinalités élevées (>100).
 
- ##### La description de la totalité du contexte
+##### La description de la totalité du contexte
  
  La description de la totalité du contexte est une liste ordonnée contenant les différentes variables au format json.
  
