@@ -1,11 +1,12 @@
-import traceback, logging, json
+import logging
+import traceback
 
 from flask import Flask, jsonify, Blueprint, request
-from flask_restplus import Resource, Api, swagger
+from flask_restplus import Resource, Api
 from requests import codes as http_codes
 
-from ok_corral.agent_manager import AgentManager, PrivilegeException
 from ok_corral.bandits import BANDIT_AVAILABLES
+from ok_corral.engine.agent_manager import AgentManager, PrivilegeException
 
 app = Flask(__name__)
 app.config.SWAGGER_UI_JSONEDITOR = True

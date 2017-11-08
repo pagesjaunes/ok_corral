@@ -1,11 +1,9 @@
 import abc
-import numpy as np
-import json
 import itertools
 
-from ok_corral.helper import *
+import numpy as np
 
-
+from ok_corral.engine.helper import *
 
 
 class Feature():

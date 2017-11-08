@@ -5,14 +5,12 @@ LINUCB = "linucb"
 
 BANDIT_AVAILABLES = [THOMPSON_SAMPING, UPPER_CONFIDENCE_BOUND, LINUCB]
 
-from ok_corral.agents.agents import ThompsonSampling
-from ok_corral.agents.agents import RandomBandit
-from ok_corral.agents.agents import UCB
+from ok_corral.engine.agents import LinUCB
+from ok_corral.engine.agents import RandomContextualBandit
 
-from ok_corral.agents.agents import LinUCB
-from ok_corral.agents.agents import RandomContextualBandit
-
-from ok_corral.feature_wrapper.feature_wrapper import FeatureWrapper
+from ok_corral.engine.agents import RandomBandit
+from ok_corral.engine.agents import ThompsonSampling
+from ok_corral.engine.agents import UCB
 
 
 def get_class_from_algo(p_type):

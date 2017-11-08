@@ -1,8 +1,7 @@
-import sqlite3
 import os.path
+import sqlite3
 
 from ok_corral.bandits import get_class_from_algo
-
 
 DATA_BASE_NAME = 'ok_corral.db'
 
@@ -28,7 +27,7 @@ def _create_tables():
 
     # Creation de la table des users
     c.execute('''CREATE TABLE users
-                 (key TEXT PRIMARY KEY) WITHOUT ROWID;''')
+                 (key TEXT PRIMARY KEY, name TEXT) WITHOUT ROWID;''')
 
     # Creation de la table des instances
     c.execute('''CREATE TABLE instances
@@ -68,7 +67,7 @@ def get_user_keys_from_database():
 
 def add_instance_to_database(p_key, p_instance):
 
-    from ok_corral.agent_manager import AgentManager
+    from ok_corral.engine.agent_manager import AgentManager
 
     conn = sqlite3.connect(DATA_BASE_NAME)
 
@@ -87,7 +86,7 @@ def add_instance_to_database(p_key, p_instance):
 
 def get_instances_from_database():
 
-    from ok_corral.agent_manager import AgentManager
+    from ok_corral.engine.agent_manager import AgentManager
 
     instances = {}
 
@@ -114,7 +113,7 @@ def get_instances_from_database():
 
 def update_instance_in_database(p_key, p_instance):
 
-    from ok_corral.agent_manager import AgentManager
+    from ok_corral.engine.agent_manager import AgentManager
 
     conn = sqlite3.connect(DATA_BASE_NAME)
 

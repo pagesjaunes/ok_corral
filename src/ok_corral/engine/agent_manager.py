@@ -2,8 +2,8 @@ import os
 from binascii import hexlify
 
 from ok_corral.bandits import *
-
-from ok_corral import persistance_manager
+from ok_corral.engine import persistance_manager
+from ok_corral.engine.feature_wrapper import FeatureWrapper
 
 # Type d'algorithmes
 TYPE_BANDIT = "bandit"

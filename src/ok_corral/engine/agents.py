@@ -1,13 +1,12 @@
 # coding=utf-8
-import json
+import abc
 import math
 import random
 
 import numpy as np
-import abc
 
-from ok_corral.feature_wrapper.feature_wrapper import FeatureWrapper
-from ok_corral.helper import *
+from ok_corral.engine.feature_wrapper import FeatureWrapper
+from ok_corral.engine.helper import *
 
 
 class Agent:
@@ -287,7 +286,7 @@ class LinUCB(ContextualBandit):
 
     def select_action(self, p_context):
 
-        p_context = convert_json_to_array_of_reals(p_context, self.wrapper)
+        p_context = if_json_convert_to_array_of_reals(p_context, self.wrapper)
 
         for k in range(self.nombre_bras):
             value = np.matmul(np.transpose(self._theta[k]), p_context)
@@ -298,7 +297,7 @@ class LinUCB(ContextualBandit):
         return np.argmax(self._tmp_value)
 
     def observe(self, p_context, p_action, p_reward):
-        p_context = convert_json_to_array_of_reals(p_context, self.wrapper)
+        p_context = if_json_convert_to_array_of_reals(p_context, self.wrapper)
 
         self.t += 1
         self._A[p_action] = self._A[p_action] + np.matmul(p_context, np.transpose(p_context))
@@ -364,7 +363,13 @@ class LinUCB(ContextualBandit):
 
 
 # Helpers Bandit Contextuel
-def convert_json_to_array_of_reals(p_json, p_wrapper):
+def if_json_convert_to_array_of_reals(p_json, p_wrapper):
+    """
+    Si p_json n'est pas un tableau numpy, essaye de le convertir en numpy
+    :param p_json: Le contexte, au format numpy, en json ou json loadé
+    :param p_wrapper: L'éventuel wrapper pour faire la conversion
+    :return:
+    """
     if type(p_json) == list:
         p_json = p_wrapper.get_all_features_as_real_valued_array(p_json)
 

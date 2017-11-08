@@ -6,7 +6,7 @@ import abc
 import csv
 import os
 
-from ok_corral.agents.agents import ContextualBandit
+from ok_corral.engine.agents import ContextualBandit
 
 HORIZON_PAR_DEFAUT = 100000
 

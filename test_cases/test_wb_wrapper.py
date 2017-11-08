@@ -1,7 +1,5 @@
 import os
 import sys
-import time
-import pickle
 import unittest
 
 try:
@@ -13,8 +11,7 @@ except:
 if dir_path not in sys.path:
     sys.path.append(dir_path)
 
-from ok_corral.bandits import LinUCB
-from ok_corral.feature_wrapper.feature_wrapper import FeatureWrapper, RealValuedFeature, CategoricallyNumberedFeature
+from ok_corral.engine.feature_wrapper import FeatureWrapper, RealValuedFeature, CategoricallyNumberedFeature
 
 
 class TestFeature(unittest.TestCase):
