@@ -183,6 +183,7 @@ class FeatureWrapper():
         wrapper = FeatureWrapper()
 
         for i_feature in deserialize_json(p_json):
+
             wrapper.add_feature_from_loaded_json(i_feature)
 
         return wrapper

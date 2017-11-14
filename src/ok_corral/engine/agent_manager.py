@@ -4,6 +4,7 @@ from binascii import hexlify
 from ok_corral.bandits import *
 from ok_corral.engine import persistance_manager
 from ok_corral.engine.feature_wrapper import FeatureWrapper
+from ok_corral.engine.helper import deserialize_json
 
 # Type d'algorithmes
 TYPE_BANDIT = "bandit"
@@ -55,10 +56,9 @@ class PrivilegeManager:
 
 
 class AgentManager:
-
     NAME = "name"
     INSTANCE = "instance"
-    TYPE = "type"
+    TYPE_BANDIT = "type"
     ALGO_NAME = "algorithme"
     OWNER_KEY = "owner_key"
     INSTANCE_KEY = "instance_key"
@@ -80,11 +80,11 @@ class AgentManager:
         key_generated = _key_generation(self)
 
         instance = None
-        type = None
+        type_bandit = None
 
         if p_context_description is None:
 
-            type = TYPE_BANDIT
+            type_bandit = TYPE_BANDIT
 
             if p_algorithm_name == UPPER_CONFIDENCE_BOUND:
                 instance = UCB(p_nombre_bras)
@@ -103,8 +103,20 @@ class AgentManager:
 
         else:
 
-            type = TYPE_BANDIT_CONTEXTUEL
-            wrapper = FeatureWrapper.from_json(p_context_description)
+            type_bandit = TYPE_BANDIT_CONTEXTUEL
+            dic_wrapper = deserialize_json(p_context_description)
+
+            is_wrapper_unique = type(dic_wrapper[0]) != list
+
+            if is_wrapper_unique:
+
+                wrapper = FeatureWrapper.from_json(dic_wrapper)
+
+            else:
+
+                wrapper = []
+                for i_wrapper in dic_wrapper:
+                    wrapper.append(FeatureWrapper.from_json(i_wrapper))
 
             if p_algorithm_name == LINUCB:
 
@@ -114,7 +126,7 @@ class AgentManager:
 
                 assert False
 
-        self.instances[key_generated] = {self.INSTANCE: instance, self.TYPE: type, self.ALGO_NAME: p_algorithm_name,
+        self.instances[key_generated] = {self.INSTANCE: instance, self.TYPE_BANDIT: type_bandit, self.ALGO_NAME: p_algorithm_name,
                                          self.NAME: p_instance_name, self.OWNER_KEY: p_user_key}
 
         persistance_manager.add_instance_to_database(key_generated, self.instances[key_generated])
@@ -124,21 +136,21 @@ class AgentManager:
         return key_generated
 
     # Prise de décisions
-    def get_decision(self, p_instance_key, p_context = None, p_filtre = None):
+    def get_decision(self, p_instance_key, p_context=None, p_filtre=None):
 
         self.check_instance_key(p_instance_key)
 
         if p_context is None:
 
             assert self.instances[p_instance_key][
-                       self.TYPE] == TYPE_BANDIT, "Pour les algorithmes de bandits contextuels, inclure le contexte."
+                       self.TYPE_BANDIT] == TYPE_BANDIT, "Pour les algorithmes de bandits contextuels, inclure le contexte."
 
-            return self.instances[p_instance_key][self.INSTANCE].select_action(p_filtre = p_filtre)
+            return self.instances[p_instance_key][self.INSTANCE].select_action(p_filtre=p_filtre)
 
         else:
 
             assert self.instances[p_instance_key][
-                       self.TYPE] == TYPE_BANDIT_CONTEXTUEL, "Ne pas inclure de contexte pour les algorithmes de bandits non contextuels"
+                       self.TYPE_BANDIT] == TYPE_BANDIT_CONTEXTUEL, "Ne pas inclure de contexte pour les algorithmes de bandits non contextuels"
 
             return self.instances[p_instance_key][self.INSTANCE].select_action(p_context, p_filtre)
 

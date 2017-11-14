@@ -85,7 +85,7 @@ class TestBanditAlgorithms(unittest.TestCase):
 
         print("Adult:LinUCB",dec_per_sec, reward, regret)
 
-        self.assertGreater(dec_per_sec, 2000)
+        self.assertGreater(dec_per_sec, 1750)
         self.assertLess(regret, 75000)
 
     def test_RandomContextual(self):

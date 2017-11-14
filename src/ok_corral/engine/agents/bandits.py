@@ -2,7 +2,7 @@ import random, math
 
 import numpy as np
 
-from ok_corral.engine.agents.agents import Agent
+from ok_corral.engine.agents.agent import Agent
 from ok_corral.engine.helper import serialize_json, deserialize_json
 
 

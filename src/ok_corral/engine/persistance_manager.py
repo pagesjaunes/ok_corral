@@ -76,7 +76,7 @@ def add_instance_to_database(p_key, p_instance):
     c.execute('''INSERT INTO instances VALUES (?,?,?,?,?,?)''',\
               (p_key,\
                p_instance[AgentManager.NAME],\
-               p_instance[AgentManager.TYPE],\
+               p_instance[AgentManager.TYPE_BANDIT],\
                p_instance[AgentManager.ALGO_NAME],\
                p_instance[AgentManager.INSTANCE].to_json(),\
                p_instance[AgentManager.OWNER_KEY]))
@@ -103,7 +103,7 @@ def get_instances_from_database():
         i_owner_key = i_row[5]
 
         instances[i_key] = {AgentManager.INSTANCE: get_class_from_algo(i_algo).from_json(i_instance),\
-                            AgentManager.TYPE: i_type,\
+                            AgentManager.TYPE_BANDIT: i_type,\
                             AgentManager.ALGO_NAME: i_algo,\
                             AgentManager.NAME: i_name,\
                             AgentManager.OWNER_KEY: i_owner_key}

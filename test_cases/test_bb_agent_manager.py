@@ -58,7 +58,6 @@ class TestAgentManager(unittest.TestCase):
         wrapper.add_feature(feature_2)
 
         json_contexte = wrapper.to_json()
-
         key = manager.add_bandit("ma clé", "mon instance", "linucb", 5, json_contexte)
 
 

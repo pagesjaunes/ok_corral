@@ -2,11 +2,12 @@ import json, random
 
 import numpy as np
 
-from ok_corral.engine.agents.agents import Agent
+from ok_corral.engine.agents.agent import Agent
 from ok_corral.engine.agents.bandits import Bandit
 from ok_corral.engine.feature_wrapper import FeatureWrapper
 from ok_corral.engine.helper import serialize_json, deserialize_json
 from ok_corral.engine.agents.brains.linear_brain import LinearBrain
+
 
 
 class ContextualBandit(Agent):
@@ -94,19 +95,42 @@ class LinUCB(ContextualBandit):
 
     def select_action(self, p_context, p_filtre = None):
 
-        for i_k in range(self.nombre_bras):
+        # Un seul contexte
+        if type(p_context[0]) != list:
 
-            p_context = if_json_convert_to_array_of_reals(p_context, self._get_wrapper(i_k))
+            for i_k in range(self.nombre_bras):
 
-            if p_filtre is None or i_k in p_filtre:
+                p_context = if_json_convert_to_array_of_reals(p_context, self._get_wrapper(i_k))
 
-                self._tmp_value[i_k] = self.brains[i_k].get_value(p_context)[1]
+                if p_filtre is None or i_k in p_filtre:
 
-            else:
+                    self._tmp_value[i_k] = self.brains[i_k].get_value(p_context)[1]
 
-                self._tmp_value[i_k] = -99999
+                else:
 
-        return np.argmax(self._tmp_value)
+                    self._tmp_value[i_k] = -99999
+
+            return np.argmax(self._tmp_value)
+
+        # Contextes multiples
+
+        else:
+            ucb = []
+            for i_k, i_context in p_context:
+
+                if p_filtre is None or i_k in p_filtre:
+
+                    context = if_json_convert_to_array_of_reals(i_context[i_context], self._get_wrapper(i_k))
+
+                    ucb.append(self.brains[i_k](context))
+
+                else:
+
+                    ucb.append(-99999)
+
+            return np.argmax(ucb)
+
+
 
     def observe(self, p_context, p_action, p_reward):
 
