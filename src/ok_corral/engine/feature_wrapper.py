@@ -186,3 +186,39 @@ class FeatureWrapper():
             wrapper.add_feature_from_loaded_json(i_feature)
 
         return wrapper
+
+
+class WrapperByAction():
+
+    def __init__(self):
+        self.wrapper_list = []
+
+    def add_wrapper(self, p_wrapper):
+
+        assert isinstance(p_wrapper, FeatureWrapper)
+
+        # TODO Vérifier si la feature existe pas déjà
+        # Si oui, lancer une exception
+        self.wrapper_list.append(p_wrapper)
+
+    def get_wrapper(self, p_action):
+
+        if len(self.wrapper_list) == 1:
+            return self.wrapper_list[0]
+
+        else:
+            return self.wrapper_list[p_action]
+
+    def to_json(self, p_dump=True):
+
+        return serialize_json(([x.to_json(False) for x in self.wrapper_list]), p_dump)
+
+    @staticmethod
+    def from_json(p_json):
+
+        wrapper = WrapperByAction()
+
+        for i_jsonized_wrapper in deserialize_json(p_json):
+            wrapper.add_wrapper(FeatureWrapper.from_json(i_jsonized_wrapper))
+
+        return wrapper

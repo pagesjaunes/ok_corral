@@ -11,7 +11,7 @@ except:
 if dir_path not in sys.path:
     sys.path.append(dir_path)
 
-from ok_corral.engine.feature_wrapper import FeatureWrapper, RealValuedFeature, CategoricallyNumberedFeature
+from ok_corral.engine.feature_wrapper import FeatureWrapper, RealValuedFeature, CategoricallyNumberedFeature, WrapperByAction
 
 
 class TestFeature(unittest.TestCase):
@@ -127,6 +127,40 @@ class TestWrapper(unittest.TestCase):
         self.assertTrue(deserialized_wrapper.features_list[0].dimension == 2)
         self.assertTrue(deserialized_wrapper.features_list[1].dimension == 5)
 
+class TestWrapperByAction(unittest.TestCase):
+
+    def test_wrapperByAction(self):
+        name = "my name 1"
+        feature_1 = RealValuedFeature(p_dimension=2, p_name=name)
+
+        feature_2 = RealValuedFeature(p_dimension=5)
+
+        name2 = "my name 2"
+        feature_3 = CategoricallyNumberedFeature(p_cardinality=5, p_name=name2)
+
+        wrapper = FeatureWrapper()
+        wrapper.add_feature(feature_1)
+        wrapper.add_feature(feature_2)
+
+
+        wrapper2 = FeatureWrapper()
+        wrapper2.add_feature(feature_3)
+
+        wrapper_by_action = WrapperByAction()
+        wrapper_by_action.add_wrapper(wrapper)
+        wrapper_by_action.add_wrapper(wrapper2)
+
+        jsonized_wrapper = wrapper_by_action.to_json()
+
+        wrapper_by_action = WrapperByAction.from_json(jsonized_wrapper)
+
+        self.assertEqual(wrapper_by_action.to_json(),
+                         '[[{"type": "FT_REAL", "dimension": 2, "name": "my name 1"}, {"type": "FT_REAL", "dimension": 5}], [{"type": "FT_CAT_NUMBER", "cardinality": 5, "name": "my name 2"}]]')
+
+        self.assertEqual(wrapper_by_action.get_wrapper(0).to_json()
+                     ,'[{"type": "FT_REAL", "dimension": 2, "name": "my name 1"}, {"type": "FT_REAL", "dimension": 5}]')
+        self.assertEqual(wrapper_by_action.get_wrapper(1).to_json(),
+                         '[{"type": "FT_CAT_NUMBER", "cardinality": 5, "name": "my name 2"}]')
 
 
 if __name__ == '__main__':
