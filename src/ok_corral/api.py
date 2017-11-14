@@ -1,5 +1,4 @@
-import logging
-import traceback
+import logging, traceback, json
 
 from flask import Flask, jsonify, Blueprint, request
 from flask_restplus import Resource, Api
@@ -122,7 +121,7 @@ class Bandit(Resource):
         context = request.args[self.CONTEXTE] if self.CONTEXTE in request.args else None
         filtre = request.args[self.FILTRE] if self.FILTRE in request.args else None
         if filtre is not None:
-            filtre = set(int(i_x) for i_x in filtre)
+            filtre = set(int(i_x) for i_x in json.loads(filtre))
         try:
             action = agent_manager.get_decision(request.args[self.INST_KEY], p_context=context, p_filtre = filtre)
 
