@@ -6,11 +6,13 @@ from ok_corral.engine.agents.agents import Agent
 from ok_corral.engine.agents.bandits import Bandit
 from ok_corral.engine.feature_wrapper import FeatureWrapper
 from ok_corral.engine.helper import serialize_json, deserialize_json
+from ok_corral.engine.agents.brains.linear_brain import LinearBrain
 
 
 class ContextualBandit(Agent):
 
     WRAPPER = "wrapper"
+    BRAIN = "brain"
 
     def __init__(self):
         Agent.__init__(self)
@@ -45,47 +47,60 @@ class RandomContextualBandit(ContextualBandit):
         return RandomContextualBandit(deserialize_json(p_json)[RandomContextualBandit.NOMBRE_BRAS])
 
 
-
 class LinUCB(ContextualBandit):
 
-    A_CODE = "_A"
-    B_CODE = "_b"
-    A_INV_CODE = "_A_inv"
-    THETA_CODE = "_theta"
+    def _get_dimension(self, p_k):
 
-    DIMENSION = "dimension"
+        if self.wrappers is not None:
 
-    def __init__(self, p_nombre_bras, p_dimension = None, p_wrapper=None, p_specific_context = None):
-
-        assert p_dimension is not None or p_wrapper is not None
-
-        self.nombre_bras = p_nombre_bras
-
-        self.wrapper = p_wrapper
-
-        if p_wrapper is not None:
-
-            self.dimension = p_wrapper.get_array_dimension()
+            return self.wrappers.get_array_dimension() if type(self.wrappers) != list else self.wrappers[p_k].get_array_dimension()
 
         else:
-            self.dimension = p_dimension
 
-        self.reset()
+            return self.dimensions if type(self.dimensions) != list else self.dimensions[p_k]
+
+    def _get_wrapper(self, p_k):
+
+        if self.wrappers is not None:
+
+            return self.wrappers if type(self.wrappers) != list else self.wrappers[p_k]
+
+        else:
+            return None
+
+    def __init__(self, p_nombre_bras, p_dimensions = None, p_wrappers=None):
+
+        assert p_dimensions is not None or p_wrappers is not None
+
+        self.nombre_bras = p_nombre_bras
+        self.dimensions = p_dimensions
+        self.wrappers = p_wrappers
+        self.brains = []
+        self.counters = []
+
+        for i_k in range(p_nombre_bras):
+
+            self.counters.append(0)
+
+            dimension = self._get_dimension(i_k)
+
+            brain = LinearBrain(dimension)
+
+            self.brains.append(brain)
+
         Bandit.__init__(self)
 
         self._tmp_value = np.zeros(self.nombre_bras)
 
     def select_action(self, p_context, p_filtre = None):
 
-        p_context = if_json_convert_to_array_of_reals(p_context, self.wrapper)
-
         for i_k in range(self.nombre_bras):
 
-            if p_filtre is None or i_k in p_filtre:
-                value = np.matmul(np.transpose(self._theta[i_k]), p_context)
-                confidence_interval = np.sqrt(np.matmul(np.matmul(np.transpose(p_context), self._A_inv[i_k]), p_context))
+            p_context = if_json_convert_to_array_of_reals(p_context, self._get_wrapper(i_k))
 
-                self._tmp_value[i_k] = value + confidence_interval
+            if p_filtre is None or i_k in p_filtre:
+
+                self._tmp_value[i_k] = self.brains[i_k].get_value(p_context)[1]
 
             else:
 
@@ -94,47 +109,32 @@ class LinUCB(ContextualBandit):
         return np.argmax(self._tmp_value)
 
     def observe(self, p_context, p_action, p_reward):
-        p_context = if_json_convert_to_array_of_reals(p_context, self.wrapper)
 
-        self.t += 1
-        self._A[p_action] = self._A[p_action] + np.matmul(p_context, np.transpose(p_context))
-        self._b[p_action] = self._b[p_action] + p_context * p_reward
+        self.counters[p_action] += 1
+        p_context = if_json_convert_to_array_of_reals(p_context, self._get_wrapper(p_action))
 
-        if self.t % 1000 == 0:
-            self._invert()
+        self.brains[p_action].observe(p_context,p_action,p_reward, self.counters[p_action]%1000 == 0)
 
-    def reset(self):
-
-        self.t = 0
-
-        self._A = []
-        self._b = []
-
-        for k in range(self.nombre_bras):
-            self._A.append(np.identity(self.dimension))
-            self._b.append(np.zeros((self.dimension, 1)))
-
-        self._invert()
-
-    def _invert(self):
-
-        self._A_inv = []
-        self._theta = []
-        for k in range(self.nombre_bras):
-            self._A_inv.append(np.linalg.inv(self._A[k]))
-
-            self._theta.append(np.matmul(self._A_inv[k], self._b[k]))
 
     def to_json(self, p_dump=True):
 
-        dictionary = {self.NOMBRE_BRAS: self.nombre_bras, self.DIMENSION: self.dimension}
+        dictionary = {self.NOMBRE_BRAS: self.nombre_bras}
 
-        for k in range(self.nombre_bras):
-            dictionary[k] = {self.A_CODE: self._A[k].tolist(), self.B_CODE: self._b[k].tolist(),
-                             self.A_INV_CODE: self._A_inv[k].tolist(), self.THETA_CODE: self._theta[k].tolist()}
+        is_wrapper_unique = self.wrappers is not None and type(self.wrappers) != list
 
-        if self.wrapper is not None:
-            dictionary[self.WRAPPER] = self.wrapper.to_json(False)
+        if is_wrapper_unique:
+            dictionary[self.WRAPPER] = self.wrappers.to_json(False)
+
+        for i_k in range(self.nombre_bras):
+
+            dictionary[i_k] = {}
+
+            dictionary[i_k][self.BRAIN] = self.brains[i_k].to_json(False)
+
+            if self.wrappers is not None:
+
+                if not is_wrapper_unique:
+                    dictionary[i_k][self.WRAPPER] = self.wrappers[i_k].to_json(False)
 
         return serialize_json(dictionary, p_dump)
 
@@ -142,19 +142,28 @@ class LinUCB(ContextualBandit):
     def from_json(p_json):
 
         dictionary = deserialize_json(p_json)
-        wrapper = None
+        wrappers = None
 
         if LinUCB.WRAPPER in dictionary:
-            wrapper = FeatureWrapper.from_json(p_json=dictionary[LinUCB.WRAPPER])
+            wrappers = FeatureWrapper.from_json(p_json=dictionary[LinUCB.WRAPPER])
 
-        linucb = LinUCB(json.loads(p_json)[LinUCB.NOMBRE_BRAS], p_dimension=dictionary[LinUCB.DIMENSION], p_wrapper=wrapper)
+        nombre_bras = int(dictionary[LinUCB.NOMBRE_BRAS])
 
-        for k in range(linucb.nombre_bras):
-            dic_k = dictionary[str(k)]
-            linucb._A[k] = np.array(dic_k[LinUCB.A_CODE])
-            linucb._b[k] = np.array(dic_k[LinUCB.B_CODE])
-            linucb._A_inv[k] = np.array(dic_k[LinUCB.A_INV_CODE])
-            linucb._theta[k] = np.array(dic_k[LinUCB.THETA_CODE])
+        brains = []
+        for i_k in range(nombre_bras):
+
+            dic_k = dictionary[str(i_k)]
+
+            brains.append(LinearBrain.from_json(dic_k[LinUCB.BRAIN]))
+
+            if LinUCB.WRAPPER in dic_k:
+                if wrappers is None:
+                    wrappers = [FeatureWrapper.from_json(p_json=dic_k[LinUCB.WRAPPER])]
+                else :
+                    wrappers.append(FeatureWrapper.from_json(p_json=dic_k[LinUCB.WRAPPER]))
+
+        linucb = LinUCB(json.loads(p_json)[LinUCB.NOMBRE_BRAS], p_dimensions=1, p_wrappers=wrappers)
+        linucb.brains = brains
 
         return linucb
 

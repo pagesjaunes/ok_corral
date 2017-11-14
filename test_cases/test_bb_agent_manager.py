@@ -63,6 +63,7 @@ class TestAgentManager(unittest.TestCase):
 
 
         contexte = [{"value" : "[2,3]"},{"value" : "[2,3,4,5,2]"}]
+
         action = manager.get_decision(key,contexte)
 
         manager.observe(key,action,1,contexte)

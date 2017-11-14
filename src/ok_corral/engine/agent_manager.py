@@ -30,12 +30,12 @@ class PrivilegeManager:
 
         self._user_owned = {}
         if not persistance_manager.check_database():
-            persistance_manager.add_user_key_to_database(SQUELETON_KEY)
+            persistance_manager.add_user_key_to_database(SQUELETON_KEY, SQUELETON_KEY)
 
         self._user_keys = persistance_manager.get_user_keys_from_database()
 
-    def add_user(self, p_key):
-        persistance_manager.add_user_key_to_database(p_key)
+    def add_user(self, p_key, p_name):
+        persistance_manager.add_user_key_to_database(p_key, p_name)
         self._user_keys.add(p_key)
 
     def can_create(self, p_user_key):

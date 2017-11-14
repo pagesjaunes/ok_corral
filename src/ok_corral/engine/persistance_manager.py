@@ -40,13 +40,13 @@ def _create_tables():
     # Just be sure any changes have been committed or they will be lost.
     conn.close()
 
-def add_user_key_to_database(p_user_key):
+def add_user_key_to_database(p_user_key, p_name):
 
     conn = sqlite3.connect(DATA_BASE_NAME)
 
     c = conn.cursor()
 
-    c.execute('''INSERT INTO users VALUES (?)''',(p_user_key,))
+    c.execute('''INSERT INTO users VALUES (?)''',(p_user_key,p_name))
 
     conn.commit()
 
