@@ -124,7 +124,7 @@ class AgentManager:
         return key_generated
 
     # Prise de décisions
-    def get_decision(self, p_instance_key, p_context=None):
+    def get_decision(self, p_instance_key, p_context = None, p_filtre = None):
 
         self.check_instance_key(p_instance_key)
 
@@ -132,13 +132,15 @@ class AgentManager:
 
             assert self.instances[p_instance_key][
                        self.TYPE] == TYPE_BANDIT, "Pour les algorithmes de bandits contextuels, inclure le contexte."
-            return self.instances[p_instance_key][self.INSTANCE].select_action()
+
+            return self.instances[p_instance_key][self.INSTANCE].select_action(p_filtre = p_filtre)
 
         else:
 
             assert self.instances[p_instance_key][
                        self.TYPE] == TYPE_BANDIT_CONTEXTUEL, "Ne pas inclure de contexte pour les algorithmes de bandits non contextuels"
-            return self.instances[p_instance_key][self.INSTANCE].select_action(p_context)
+
+            return self.instances[p_instance_key][self.INSTANCE].select_action(p_context, p_filtre)
 
     def observe(self, p_instance_key, p_action, p_reward, p_context=None):
 

@@ -1,7 +1,7 @@
 # coding=utf-8
 import numpy as np
 import random
-from ok_corral.engine.agents import Bandit
+from ok_corral.engine.agents.bandits import Bandit
 from scipy.stats import bernoulli
 
 HORIZON_PAR_DEFAUT = 100000

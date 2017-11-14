@@ -68,10 +68,12 @@ class Bandit(Resource):
     CONTEXTE = "contexte"
     ACTION = "action"
     REWARD = "reward"
+    FILTRE = "filtre"
 
 
     HELP_USER_KEY = 'La clé utilisateur'
     HELP_CONTEXTE = "Le contexte (obligatoire pour les bandits contextuels)"
+    HELP_FILTRE = "La liste des actions disponibles (ne pas remplir si tout est dispo)"
 
     doc_parser = api.parser()
     doc_parser.add_argument(USER_KEY, location='args', help=HELP_USER_KEY, required=True)
@@ -110,16 +112,19 @@ class Bandit(Resource):
     doc_parser.add_argument(INST_KEY, location='args', required=True)
     doc_parser.add_argument(CONTEXTE, location='args', help=HELP_CONTEXTE,
                             required=False)
-
+    doc_parser.add_argument(FILTRE, location='args', help=HELP_FILTRE,
+                            required=False)
     @api.expect(doc_parser)
     def get(self):
         """
         Retourne la décision prise par une instance
         """
         context = request.args[self.CONTEXTE] if self.CONTEXTE in request.args else None
-
+        filtre = request.args[self.FILTRE] if self.FILTRE in request.args else None
+        if filtre is not None:
+            filtre = set(int(i_x) for i_x in filtre)
         try:
-            action = agent_manager.get_decision(request.args[self.INST_KEY], p_context=context)
+            action = agent_manager.get_decision(request.args[self.INST_KEY], p_context=context, p_filtre = filtre)
 
             return jsonify(action=str(action))
 
@@ -139,6 +144,8 @@ class Bandit(Resource):
         Met à jour l'algorithme
         """
         contexte = request.args[self.CONTEXTE] if self.CONTEXTE in request.args else None
+
+
         try:
             action = agent_manager.observe(request.args[self.INST_KEY], int(request.args[self.ACTION]),
                                            float(request.args[self.REWARD]), p_context=contexte)
