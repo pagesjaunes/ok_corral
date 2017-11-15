@@ -7,7 +7,9 @@ class Context:
 
     def __init__(self, p_context):
 
-        p_context = json.loads(p_context)
+        if type(p_context) == str:
+            p_context = json.loads(p_context)
+
         if type(p_context) == dict and self.ACTION_CONTEXT not in p_context:
 
             self.shared_context = p_context
