@@ -61,7 +61,7 @@ class TestAgentManager(unittest.TestCase):
         key = manager.add_bandit("ma clé", "mon instance", "linucb", 5, json_contexte)
 
 
-        contexte = [{"value" : "[2,3]"},{"value" : "[2,3,4,5,2]"}]
+        contexte = {name : "[2,3]", name2 : "[2,3,4,5,2]"}
 
         action = manager.get_decision(key,contexte)
 

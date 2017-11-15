@@ -5,6 +5,8 @@ import numpy as np
 from ok_corral.engine.agents.agent import Agent
 from ok_corral.engine.agents.bandits import Bandit
 from ok_corral.engine.feature_wrapper import FeatureWrapper
+from ok_corral.engine.context import Context
+
 from ok_corral.engine.helper import serialize_json, deserialize_json
 from ok_corral.engine.agents.brains.linear_brain import LinearBrain
 
@@ -91,45 +93,33 @@ class LinUCB(ContextualBandit):
 
         Bandit.__init__(self)
 
-        self._tmp_value = np.zeros(self.nombre_bras)
-
     def select_action(self, p_context, p_filtre = None):
 
+        isContextInstance = isinstance(p_context, Context)
+
         # Un seul contexte
-        if type(p_context[0]) != list:
-
-            for i_k in range(self.nombre_bras):
-
-                p_context = if_json_convert_to_array_of_reals(p_context, self._get_wrapper(i_k))
-
-                if p_filtre is None or i_k in p_filtre:
-
-                    self._tmp_value[i_k] = self.brains[i_k].get_value(p_context)[1]
-
-                else:
-
-                    self._tmp_value[i_k] = -99999
-
-            return np.argmax(self._tmp_value)
-
-        # Contextes multiples
+        # TODO voir à e ça dans l'objet Context
+        if not isContextInstance or p_context.contexts is None or len(p_context.contexts) == 0:
+            contexts = [[i_k, p_context.shared_context if isContextInstance else p_context] for i_k in range(self.nombre_bras)]
 
         else:
-            ucb = []
-            for i_k, i_context in p_context:
 
-                if p_filtre is None or i_k in p_filtre:
+            contexts = p_context.get_context_by_action()
 
-                    context = if_json_convert_to_array_of_reals(i_context[i_context], self._get_wrapper(i_k))
+        ucb = []
 
-                    ucb.append(self.brains[i_k](context))
+        for i_k, i_context in contexts:
 
-                else:
+            if p_filtre is None or i_k in p_filtre:
 
-                    ucb.append(-99999)
+                context = if_json_convert_to_array_of_reals(i_context, self._get_wrapper(i_k))
+                ucb.append(self.brains[i_k].get_value(context)[1])
 
-            return np.argmax(ucb)
+            else:
 
+                ucb.append(-99999)
+
+        return np.argmax(ucb)
 
 
     def observe(self, p_context, p_action, p_reward):
@@ -199,7 +189,7 @@ def if_json_convert_to_array_of_reals(p_json, p_wrapper):
     :param p_wrapper: L'éventuel wrapper pour faire la conversion
     :return:
     """
-    if type(p_json) == list:
+    if type(p_json) == dict:
         p_json = p_wrapper.get_all_features_as_real_valued_array(p_json)
 
     return p_json

@@ -47,6 +47,10 @@ class CategoricallyNumberedFeature(Feature):
         self.name = p_name
 
     def get_array(self, p_json):
+
+        if p_json is None:
+            return [0]*self.cardinality
+
         value = deserialize_json(p_json)
 
         assert self.cardinality > value, self.name + " (got: " + str(value) + " want < " + str(self.cardinality) + ")"
@@ -84,6 +88,9 @@ class RealValuedFeature(Feature):
 
     def get_array(self, p_json):
 
+        if p_json is None:
+            return [0]*self.dimension
+
         value = deserialize_json(p_json)
 
         if not type(value) == list:
@@ -115,28 +122,23 @@ class RealValuedFeature(Feature):
                                  p_name=dictionary[RealValuedFeature.NAME] if RealValuedFeature.NAME in dictionary else None)
 
 
-# Description
-# [ {nom , type, *param} ]
-
-# [ {name: "plop", value: [v1,v2...,vn }]
-# [ {name: "plop", value: [v1,v2...,vn }]
-# numerique, nombre de dimension
-# categoriel, nombre de categoriez
 
 class FeatureWrapper():
 
-    VALUE = "value"
-
     def __init__(self):
         self.features_list = []
+        self.name_set = set()
 
     def add_feature(self, p_feature):
 
         assert isinstance(p_feature, Feature)
 
-        # TODO Vérifier si la feature existe pas déjà
+        assert p_feature.name not in self.name_set
+
+        self.name_set.add(p_feature)
         # Si oui, lancer une exception
         self.features_list.append(p_feature)
+
 
     def add_feature_from_loaded_json(self, p_loaded_json):
 
@@ -158,8 +160,9 @@ class FeatureWrapper():
 
         arrays = []
 
-        for i, i_json in enumerate(loaded_json):
-            arrays.append(self.features_list[i].get_array(i_json[self.VALUE] if type(i_json) is dict else i_json))
+        for i_feature in self.features_list:
+
+            arrays.append(i_feature.get_array(loaded_json[i_feature.name] if i_feature.name in loaded_json else None))
 
         concat = list(itertools.chain.from_iterable(arrays))
 
@@ -185,41 +188,5 @@ class FeatureWrapper():
         for i_feature in deserialize_json(p_json):
 
             wrapper.add_feature_from_loaded_json(i_feature)
-
-        return wrapper
-
-
-class WrapperByAction():
-
-    def __init__(self):
-        self.wrapper_list = []
-
-    def add_wrapper(self, p_wrapper):
-
-        assert isinstance(p_wrapper, FeatureWrapper)
-
-        # TODO Vérifier si la feature existe pas déjà
-        # Si oui, lancer une exception
-        self.wrapper_list.append(p_wrapper)
-
-    def get_wrapper(self, p_action):
-
-        if len(self.wrapper_list) == 1:
-            return self.wrapper_list[0]
-
-        else:
-            return self.wrapper_list[p_action]
-
-    def to_json(self, p_dump=True):
-
-        return serialize_json(([x.to_json(False) for x in self.wrapper_list]), p_dump)
-
-    @staticmethod
-    def from_json(p_json):
-
-        wrapper = WrapperByAction()
-
-        for i_jsonized_wrapper in deserialize_json(p_json):
-            wrapper.add_wrapper(FeatureWrapper.from_json(i_jsonized_wrapper))
 
         return wrapper

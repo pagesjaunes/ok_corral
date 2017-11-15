@@ -4,6 +4,7 @@ from binascii import hexlify
 from ok_corral.bandits import *
 from ok_corral.engine import persistance_manager
 from ok_corral.engine.feature_wrapper import FeatureWrapper
+from ok_corral.engine.context import Context
 from ok_corral.engine.helper import deserialize_json
 
 # Type d'algorithmes
@@ -152,7 +153,7 @@ class AgentManager:
             assert self.instances[p_instance_key][
                        self.TYPE_BANDIT] == TYPE_BANDIT_CONTEXTUEL, "Ne pas inclure de contexte pour les algorithmes de bandits non contextuels"
 
-            return self.instances[p_instance_key][self.INSTANCE].select_action(p_context, p_filtre)
+            return self.instances[p_instance_key][self.INSTANCE].select_action(Context(p_context), p_filtre)
 
     def observe(self, p_instance_key, p_action, p_reward, p_context=None):
 
