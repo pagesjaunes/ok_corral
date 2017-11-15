@@ -46,7 +46,7 @@ def add_user_key_to_database(p_user_key, p_name):
 
     c = conn.cursor()
 
-    c.execute('''INSERT INTO users VALUES (?)''',(p_user_key,p_name))
+    c.execute('''INSERT INTO users VALUES (?,?)''',(p_user_key,p_name))
 
     conn.commit()
 
