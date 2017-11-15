@@ -1,4 +1,4 @@
-import os
+import os, json
 from binascii import hexlify
 
 from ok_corral.bandits import *
@@ -165,7 +165,7 @@ class AgentManager:
 
         else:
 
-            self.instances[p_instance_key][self.INSTANCE].observe(p_context, p_action, p_reward)
+            self.instances[p_instance_key][self.INSTANCE].observe(json.loads(p_context), p_action, p_reward)
 
         persistance_manager.update_instance_in_database(p_instance_key, self.instances[p_instance_key])
 

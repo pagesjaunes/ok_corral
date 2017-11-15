@@ -1,3 +1,5 @@
+import json
+
 class Context:
 
     SHARED_CONTEXT = "shared_context"
@@ -5,9 +7,7 @@ class Context:
 
     def __init__(self, p_context):
 
-        # Un seul contexte
-        #{name : valeur, name2 : valeur2}
-
+        p_context = json.loads(p_context)
         if type(p_context) == dict and self.ACTION_CONTEXT not in p_context:
 
             self.shared_context = p_context

@@ -126,7 +126,6 @@ class LinUCB(ContextualBandit):
 
         self.counters[p_action] += 1
         p_context = if_json_convert_to_array_of_reals(p_context, self._get_wrapper(p_action))
-
         self.brains[p_action].observe(p_context,p_action,p_reward, self.counters[p_action]%1000 == 0)
 
 
