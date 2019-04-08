@@ -114,3 +114,5 @@ seront prises en compte par les différentes actions.
 - Placer une variable dans "contexts" permet de donner des valeurs différentes à une variable suivant les actions.
 - Une action peut avoir plusieurs occurences dans "contexts" avec des valeurs de variables différentes.
 - Il ne doit pas y avoir de conflits de nom de variables entre "shared_context" et "contexts". En cas de conflit, la valeur de la variable déclarée dans "contexts" écrasera la valeur de "shared_context". Ceci est un effet de bord, ne fait pas partie du contrat d'interface et ce comportement peut changer dans les versions futures de l'API.
+
+

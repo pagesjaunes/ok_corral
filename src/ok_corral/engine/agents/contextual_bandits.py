@@ -95,12 +95,12 @@ class LinUCB(ContextualBandit):
 
     def select_action(self, p_context, p_filtre = None):
 
-        isContextInstance = isinstance(p_context, Context)
+        is_context_instance = isinstance(p_context, Context)
 
         # Un seul contexte
         # TODO voir à e ça dans l'objet Context
-        if not isContextInstance or p_context.contexts is None or len(p_context.contexts) == 0:
-            contexts = [[i_k, p_context.shared_context if isContextInstance else p_context] for i_k in range(self.nombre_bras)]
+        if not is_context_instance or p_context.contexts is None or len(p_context.contexts) == 0:
+            contexts = [[i_k, p_context.shared_context if is_context_instance else p_context] for i_k in range(self.nombre_bras)]
 
         else:
 
@@ -121,13 +121,11 @@ class LinUCB(ContextualBandit):
 
         return np.argmax(ucb)
 
-
     def observe(self, p_context, p_action, p_reward):
 
         self.counters[p_action] += 1
         p_context = if_json_convert_to_array_of_reals(p_context, self._get_wrapper(p_action))
         self.brains[p_action].observe(p_context,p_action,p_reward, self.counters[p_action]%1000 == 0)
-
 
     def to_json(self, p_dump=True):
 
